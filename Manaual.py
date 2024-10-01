@@ -93,6 +93,8 @@ def ReadCpp(file):
     else:
         Tex = 0
         TargetFile.write('\\begin{lstlisting}\n')
+        TargetFile.write(first_line)
+        TargetFile.write('\n')
     
     for line in f:  # 循环读取剩下的内容
         if line.strip() == '// ---':  # 判断当前行是否为 '// ---'
@@ -139,6 +141,8 @@ if __name__ == '__main__':
     TITLE, SCHOOL, TEAM, FILE = '', '', '', ''
     SECTION = ['', '\\clearpage\\section{%s}\n',
                '\\subsection{%s}\n', '\\subsubsection{%s}\n']
+    
+    os.system('clang-format -i ./*/*.cpp --style=file')
 
     InitSetting()
 

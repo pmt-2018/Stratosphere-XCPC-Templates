@@ -56,15 +56,143 @@
 \cfoot{\thepage}\rfoot{}
 \setcounter{section}{-1}
 \setcounter{page}{1}
-\clearpage\section{Header}
-\clearpage\section{测试}
-\subsection{test}
-这是测试代码\\
-公式 $1+1\neq 3$\\
-内联代码块 \texttt{print(1)}
+\clearpage\section{Header与约定}
+\clearpage\section{图论}
+\subsection{欧拉回路}
 \begin{lstlisting}
-void add(int a, int b) {
-    return a + b;
+namespace Euler {
+    bool directed;
+    vector<pii> G[maxn];
+    vector<int> ans;
+    int vis[maxm];
+    int dfs(int x) {
+        vector<int> t;
+        while (G[x].size()) {
+            auto [to, id] = G[x].back();
+            G[x].pop_back();
+            if (!vis[abs(id)]) {
+                vis[abs(id)] = 1, t.push_back(dfs(to)), ans.push_back(id);
+            }
+        }
+        for (int i = 1; i < t.size(); i++) {
+            if (t[i] != x) ans.clear();
+        }
+        return t.size() ? t[0] : x;
+    }
+    int n, m;
+    pii e[maxm];
+    int deg[maxn], vv[maxn];
+    void clr() {
+        for (int i = 1; i <= n; i++) G[i].clear(), deg[i] = vv[i] = 0;
+        for (int i = 1; i <= m; i++) vis[i] = 0;
+        ans.clear();
+        n = m = 0;
+    }
+    void addedge(int x, int y) {
+        chkmax(n, x), chkmax(n, y);
+        ++m;
+        e[m] = {x, y};
+        if (directed) {
+            G[x].push_back({y, m});
+            ++deg[x], --deg[y], vv[x] = vv[y] = 1;
+        } else {
+            G[x].push_back({y, m});
+            G[y].push_back({x, -m});
+            ++deg[x], ++deg[y], vv[x] = vv[y] = 1;
+        }
+    }
+    using vi = vector<int>;
+    pair<vi, vi> work() {
+        if (!m) return clr(), pair<vi, vi>{{1}, {}};
+        int S = 1;
+        for (int i = 1; i <= n; i++)
+            if (vv[i]) S = i;
+        for (int i = 1; i <= n; i++)
+            if (deg[i] > 0 && deg[i] % 2 == 1) S = i;
+        dfs(S);
+        if ((int)ans.size() != m) return clr(), pair<vi, vi>();
+        reverse(ans.begin(), ans.end());
+        vi ver, edge = ans;
+        if (directed) {
+            ver = {e[ans[0]].fir};
+            for (auto t : ans) ver.push_back(e[t].sec);
+        } else {
+            ver = {ans[0] > 0 ? e[ans[0]].fir : e[-ans[0]].sec};
+            for (auto t : ans) ver.push_back(t > 0 ? e[t].sec : e[-t].fir);
+        }
+    }
+}  // namespace Euler\end{lstlisting}
+\subsection{Tarjan-SCC}
+\begin{lstlisting}
+void tarjan(int u) {
+    dfn[u] = low[u] = ++tim;
+    in[u] = 1;
+    st[++top] = u;
+    for (int v : G[u]) {
+        if (!dfn[v])
+            tarjan(v), ckmin(low[u], low[v]);
+        else if (in[v])
+            ckmin(low[u], dfn[v]);
+    }
+    if (dfn[u] == low[u]) {
+        ++totc;
+        int x;
+        do { x = st[top--], in[x] = 0, bel[x] = totc; } while (x != u);
+    }
 }\end{lstlisting}
+\subsection{点双}
+\begin{lstlisting}
+int T;  // assign = n
+void tarjan(int u, int fa) {
+    dfn[u] = low[u] = ++tim;
+    stk[++top] = u;
+    for (int v : G[u]) {
+        if (v == fa) continue;
+        if (!dfn[v])
+            dfs(v, u), ckmin(low[u], low[v]);
+        else
+            ckmin(low[u], dfn[v]);
+    }
+    if (fa && low[u] >= dfn[fa]) {
+        int y;
+        ++T;
+        do {
+            y = stk[top--];
+            G2[T].push_back(y), G2[y].push_back(T);
+        } while (y != u);
+        G2[T].push_back(fa), G2[fa].push_back(T);
+    }
+}\end{lstlisting}
+\subsection{边双}
+\begin{lstlisting}
+// etot should be initialized to 1 !!!
+void tarjan(int u, int f) {
+    dfn[u] = low[u] = ++tim;
+    for (int i = head[u]; i; i = e[i].nxt) {
+        int v = e[i].to;
+        if (v == f) continue;
+        if (!dfn[v]) {
+            tarjan(v, u);
+            ckmin(low[u], low[v]);
+            if (low[v] > dfn[u]) vis[i] = vis[i ^ 1] = 1;
+        } else
+            ckmin(low[u], dfn[v]);
+    }
+}
+void fill(int u) {
+    col[u] = cnt;
+    for (int i = head[u]; i; i = e[i].nxt) {
+        int v = e[i].to;
+        if (col[v] || vis[i]) continue;
+        fill(v);
+    }
+}\end{lstlisting}
+\clearpage\section{数论}
+\clearpage\section{数学}
+\clearpage\section{字符串}
+\clearpage\section{数据结构}
+\clearpage\section{计算几何}
+\clearpage\section{三维计算几何}
+\clearpage\section{杂项}
 
 \end{document}
