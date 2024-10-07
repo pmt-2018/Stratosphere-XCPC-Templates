@@ -28,8 +28,7 @@ namespace Euler {
     }
     void addedge(int x, int y) {
         chkmax(n, x), chkmax(n, y);
-        ++m;
-        e[m] = {x, y};
+        e[++m] = {x, y};
         if (directed) {
             G[x].push_back({y, m});
             ++deg[x], --deg[y], vv[x] = vv[y] = 1;
@@ -58,5 +57,7 @@ namespace Euler {
             ver = {ans[0] > 0 ? e[ans[0]].fir : e[-ans[0]].sec};
             for (auto t : ans) ver.push_back(t > 0 ? e[t].sec : e[-t].fir);
         }
+        clr();
+        return {ver, edge};
     }
 }  // namespace Euler

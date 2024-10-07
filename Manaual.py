@@ -17,24 +17,25 @@ TexHead = r"""
 \setmonofont[Mapping={}]{Monaco}
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 \geometry{left=2.5cm,right=2.5cm,top=2.5cm,bottom=2.5cm}
-\lstset{
-    language    = c++,
-    numbers     = left,
-    numberstyle = \tiny,
-    breaklines  = true,
-    captionpos  = b,
-    tabsize     = 4,
-    frame       = single,
-    columns     = fullflexible,
-    commentstyle = \color[RGB]{0,128,0},
-	keywordstyle ={
-		\color[RGB]{0,51,153}
-		\fontspec{Consolas Bold}	
-	},
-    basicstyle   = \small\ttfamily,
-    stringstyle  = \color[RGB]{148,0,209}\ttfamily,
-	rulesepcolor = \color{red!20!green!20!blue!20},
-    showstringspaces = false,                    
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+\lstset{ %
+backgroundcolor=\color{white},   % choose the background color
+basicstyle=\footnotesize\ttfamily,        % size of fonts used for the code
+columns=fullflexible,
+breaklines=true,                 % automatic line breaking only at whitespace
+captionpos=b,                    % sets the caption-position to bottom
+tabsize=4,
+commentstyle=\color{mygreen},    % comment style
+escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
+keywordstyle=\color{blue},       % keyword style
+stringstyle=\color{mymauve}\ttfamily,     % string literal style
+frame=single,
+rulesepcolor=\color{red!20!green!20!blue!20},
+% identifierstyle=\color{red},
+language=c++,
+numbers=left,
 }
 """
 
