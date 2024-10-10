@@ -167,4 +167,4 @@ Standard:	Cpp11
 # tab宽度
 TabWidth:	4
 # 使用tab字符: Never, ForIndentation, ForContinuationAndIndentation, Always
-UseTab:	Never
+UseTab:	ForIndentation

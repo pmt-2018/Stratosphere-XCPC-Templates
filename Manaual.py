@@ -20,22 +20,36 @@ TexHead = r"""
 \definecolor{mygreen}{rgb}{0,0.6,0}
 \definecolor{mygray}{rgb}{0.5,0.5,0.5}
 \definecolor{mymauve}{rgb}{0.58,0,0.82}
-\lstset{ %
-backgroundcolor=\color{white},   % choose the background color
-basicstyle=\footnotesize\ttfamily,        % size of fonts used for the code
-columns=fullflexible,
-breaklines=true,                 % automatic line breaking only at whitespace
-captionpos=b,                    % sets the caption-position to bottom
-tabsize=4,
-commentstyle=\color{mygreen},    % comment style
-escapeinside={\%*}{*)},          % if you want to add LaTeX within your code
-keywordstyle=\color{blue},       % keyword style
-stringstyle=\color{mymauve}\ttfamily,     % string literal style
-frame=single,
-rulesepcolor=\color{red!20!green!20!blue!20},
-% identifierstyle=\color{red},
-language=c++,
-numbers=left,
+\lstset{ 
+  backgroundcolor=\color{white},        % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}; should come as last argument
+  basicstyle=\footnotesize\ttfamily,    % the size of the fonts that are used for the code
+  breakatwhitespace=false,              % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                      % sets automatic line breaking
+  captionpos=b,                         % sets the caption-position to bottom
+  columns=fullflexible,
+  commentstyle=\color{mygreen},         % comment style
+  deletekeywords={...},                 % if you want to delete keywords from the given language
+  escapeinside={\%*}{*)},               % if you want to add LaTeX within your code
+  extendedchars=true,                   % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
+  firstnumber=1000,                     % start line enumeration with line 1000
+  frame=single,	                        % adds a frame around the code
+  keepspaces=true,                      % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  keywordstyle=\color{blue},            % keyword style
+  language=c++,                         % the language of the code
+  lineskip=-0.2ex,
+  morekeywords={*,...},                 % if you want to add more keywords to the set
+  numbers=left,                         % where to put the line-numbers; possible values are (none, left, right)
+  numbersep=5pt,                        % how far the line-numbers are from the code
+  numberstyle=\tiny\color{mygray},      % the style that is used for the line-numbers
+  rulecolor=\color{black},              % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  rulesepcolor=\color{red!20!green!20!blue!20},
+  showspaces=false,                     % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,               % underline spaces within strings only
+  showtabs=true,                        % show tabs within strings adding particular underscores
+  % stepnumber=2,                       % the step between two line-numbers. If it's 1, each line will be numbered
+  stringstyle=\color{mymauve}\ttfamily, % string literal style
+  tabsize=4,	                        % sets default tabsize to 2 spaces
+  tab={\rule[-.2\baselineskip]{.4pt}{\baselineskip}\kern 1.5em}
 }
 """
 
