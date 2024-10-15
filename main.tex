@@ -2,6 +2,7 @@
 \documentclass[twoside]{article}
 \usepackage[colorlinks,linkcolor=black]{hyperref}
 \usepackage{xeCJK}
+\usepackage{svg}
 \usepackage{fancyhdr}
 \usepackage{amsmath, amsthm}
 \usepackage{listings,xcolor}
@@ -56,7 +57,7 @@
 \begin{document}\small
 \begin{titlepage}
 \begin{center}
-\vspace*{0.5cm}\includegraphics[width=0.75\textwidth]{logo.jpg} \\ [2cm]
+\vspace*{0.5cm}\includesvg[width=0.75\textwidth]{logo.svg} \\ [2cm]
 \HRule \\ [1cm]
 \textbf{\Huge{Stratosphere's XCPC Templates}} \\ [0.5cm]
 \HRule \\ [4cm]
@@ -73,7 +74,7 @@
 \cfoot{\thepage}\rfoot{}
 \setcounter{section}{-1}
 \setcounter{page}{1}
-\clearpage\section{Header与约定}
+\clearpage\section{Header}
 \clearpage\section{图论}
 \subsection{欧拉回路}
 \begin{lstlisting}
@@ -201,8 +202,8 @@ void tarjan(int u, int f) {
 }
 \end{lstlisting}
 \subsection{2-SAT}
-构造方案时可以通过变量在图中的拓扑序确定该变量的取值。\\
-如果变量$x$的拓扑序在$\lnot x$之后,那么取$x$值为真。\\
+构造方案时可以通过变量在图中的拓扑序确定该变量的取值。
+如果变量$x$的拓扑序在$\lnot x$之后,那么取$x$值为真。
 因为Tarjan 算法求强连通分量时使用了栈,所以 Tarjan 求得的 SCC
 编号相当于反拓扑序。
 \begin{lstlisting}
@@ -650,17 +651,36 @@ $x_i$ 向 $x_j$ 连一条权值为 $c$ 的有向边表示 $x_j - x_i \le c$。
     相当于超级源到每个顶点距离为$dp(i,S)$，求到每个顶点的最短路，dij即可。
 \end{enumerate}
 \subsection{流和匹配的建模技巧}
-二分图相关：
+\subsubsection{二分图相关}
 \begin{itemize}
-    \item 二分图最小点覆盖：等于最大匹配$|match|$。否则可以将没覆盖的边加入匹配。
+    \item 二分图最小点覆盖：等于最大匹配$|match|$。从每一个非匹配点出发，沿着非匹配边正向进行遍历，沿着匹配边反向进行遍历到的点进行标记。选取左部点中没有被标记过的点，右部点中被标记过的点，则这些点可以形成该二分图的最小点覆盖。
     \item 二分图最大独立集：等于$n-|match|$，考虑最小点覆盖给所有边都至少有一边有点，取反后必然为最大独立集。
     \item 二分图最小边覆盖：等于$n-|match|$，考虑最坏情况每个顶点都要一条边，一个匹配能减小1的贡献。
     \item 最大团：等于补图的最大独立集。
-    \item Hall Theorem: 对于左部顶点集$X$，$\forall S\subseteq X, |N(S)|\ge |S|$。
+    \item 最小路径覆盖：对于每条有向边$(u,v)$，拆成$u\to v+n$，$u$为进入$u$，$v+n$为从v离开，则答案为$n-|match|$。
+    \item Hall Theorem: 对于左部顶点集$X$，$\forall S\subseteq X, |N(S)|\ge |S|\iff$ 存在完美匹配。
 \end{itemize}
 
-网络流相关：
+\subsubsection{网络流相关}
 
+\begin{itemize}
+    \item 二分图最大权独立集：考虑连边$(S, x, w_x)$，原图边$(x,y,\infty)$，$(y,T,w_y)$，变为最小割。
+    \item 最大权闭合子图：正权$w_u$连$(S,u,w_u)$，负权$w_v$连$(v,T,-w_v)$，原图边连$\infty$。此时最小割之后源点$S$能到达的点即为最大权闭合子图，答案即为正权和$-\text{mincut}$。
+    \item 无源汇上下界可行流：建源汇$S,T$，$l(u,v),r(u,v)$分别为流量上下界。记$d(i) = \sum l(u,i) - \sum l(i,v)$。
+    \begin{itemize}
+        \item 原边$(u,v)$连$(u,v,r(u,v)-l(u,v))$。
+        \item 对于每个点$u$，若$d_u>0$，连$(S, u, d_u)$。
+        \item 若$d_u<0$，连$(u, T, -d_u)$。
+    \end{itemize}
+    若$S$的出边全部流满则存在解。
+    \item 有源汇上下界可行流：原图源汇连边$(T\to S,(0,\infty))$，则转化为无源汇。
+    \item 有源汇上下界最大流：从 $T$ 到 $S$ 连一条下界为 $0$，上界为 $+\infty$ 的边，转化为无源汇网络。按照**无源汇上下界可行流**的做法求一次无源汇上下界超级源$SS$到超级汇$TT$的最大流。
+    删去所有附加边，在上一步的\textbf{残量网络}基础上，求一次 $S$ 到 $T$ 的最大流。两者之和即为答案。
+    \item 有源汇上下界最小流：从 $T$ 到 $S$ 连一条下界为 $0$，上界为 $+\infty$ 的边，转化为无源汇网络。按照**无源汇上下界可行流**的做法求一次无源汇上下界超级源$SS$到超级汇$TT$的最大流。
+    删去所有附加边，在上一步的\textbf{残量网络}基础上，求一次 $T$ 到 $S$ 的最大流。两者之差即为答案。
+    \item 最小费用可行流：同有源汇上下界可行流，在超级源汇跑最小费用最大流，答案为费用+下界流量的费用。
+    \item 平面图最小割 = 对偶图最短路
+\end{itemize}
 \subsection{三四元环计数}
 \begin{lstlisting}
 static int id[maxn], rnk[maxn];
@@ -838,9 +858,9 @@ Kirchhoff Matrix $T = Deg - A$, $Deg$ 是度数对角阵, $A$ 是邻接矩阵.
 
 邻接矩阵 $A[u][v]$ 表示 $u \to v$ 边个数, 重边按照边数计算, 自环不计入度数.
 
-无向图生成树计数: $c = |K的任意1个 n-1 阶主子式|$
+无向图生成树计数: $c = |K$的任意$1$个 $n-1$ 阶主子式$|$
 
-有向图外向树计数: $c = |去掉根所在的那阶得到的主子式|$
+有向图外向树计数: $c = |$去掉根所在的那阶得到的主子式$|$
 
 若求边权和则邻接矩阵可以设为$(1+wx)$，相当于一次项的系数。
 
@@ -853,6 +873,7 @@ $$
 
 
 
+\clearpage\section{树论}
 \clearpage\section{数论}
 Delete This
 \begin{lstlisting}
@@ -870,10 +891,6 @@ Delete This
 \begin{lstlisting}
 \end{lstlisting}
 \clearpage\section{计算几何}
-Delete This
-\begin{lstlisting}
-\end{lstlisting}
-\clearpage\section{三维计算几何}
 Delete This
 \begin{lstlisting}
 \end{lstlisting}

@@ -7,6 +7,7 @@ TexHead = r"""
 \documentclass[twoside]{article}
 \usepackage[colorlinks,linkcolor=black]{hyperref}
 \usepackage{xeCJK}
+\usepackage{svg}
 \usepackage{fancyhdr}
 \usepackage{amsmath, amsthm}
 \usepackage{listings,xcolor}
@@ -172,7 +173,7 @@ if __name__ == '__main__':
     TargetFile.write('\\author{%s}\n' % TEAM)
     TargetFile.write('\\pagestyle{fancy}\n\\fancyhf{}\n\\fancyhead[C]{%s, %s}\n' % (TITLE, TEAM))
     TargetFile.write('\\begin{document}\\small\n')
-    TargetFile.write('\\begin{titlepage}\n\\begin{center}\n\\vspace*{0.5cm}\\includegraphics[width=0.75\\textwidth]{logo.jpg} \\\\ [2cm]\n')
+    TargetFile.write('\\begin{titlepage}\n\\begin{center}\n\\vspace*{0.5cm}\\includesvg[width=0.75\\textwidth]{logo.svg} \\\\ [2cm]\n')
     TargetFile.write('\\HRule \\\\ [1cm]\n')
     TargetFile.write('\\textbf{\\Huge{%s}} \\\\ [0.5cm]\n' % TITLE)
     TargetFile.write('\\HRule \\\\ [4cm]\n')
