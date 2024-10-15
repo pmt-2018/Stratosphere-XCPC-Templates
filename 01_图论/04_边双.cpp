@@ -3,8 +3,10 @@ void tarjan(int u, int f) {
 	st[++top] = u;
 	for (int v : G[u]) {
 		if (v == f) continue;
-		if (!dfn[v]) tarjan(v, u), ckmin(low[u], low[v]);
-		else ckmin(low[u], dfn[v]);
+		if (!dfn[v])
+			tarjan(v, u), ckmin(low[u], low[v]);
+		else
+			ckmin(low[u], dfn[v]);
 	}
 	if (dfn[u] == low[u]) {
 		++totc;

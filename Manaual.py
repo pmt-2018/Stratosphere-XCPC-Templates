@@ -51,6 +51,8 @@ TexHead = r"""
   tabsize=4,	                        % sets default tabsize to 2 spaces
   tab={\rule[-.2\baselineskip]{.4pt}{\baselineskip}\kern 1.5em}
 }
+\usepackage{indentfirst}
+\setlength{\parindent}{2em}
 """
 
 
@@ -157,7 +159,7 @@ if __name__ == '__main__':
     SECTION = ['', '\\clearpage\\section{%s}\n',
                '\\subsection{%s}\n', '\\subsubsection{%s}\n']
     
-    os.system('clang-format -i ./*/*.cpp --style=file')
+    os.system('clang-format -i ./**/*.cpp --style=file')
 
     InitSetting()
 

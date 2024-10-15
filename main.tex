@@ -46,6 +46,8 @@
   tabsize=4,	                        % sets default tabsize to 2 spaces
   tab={\rule[-.2\baselineskip]{.4pt}{\baselineskip}\kern 1.5em}
 }
+\usepackage{indentfirst}
+\setlength{\parindent}{2em}
 \title{Stratosphere's XCPC Templates}
 \author{平流层 Stratosphere}
 \pagestyle{fancy}
@@ -183,15 +185,18 @@ void tarjan(int u, int fa) {
 \begin{lstlisting}
 void tarjan(int u, int f) {
 	dfn[u] = low[u] = ++tim;
+	st[++top] = u;
 	for (int v : G[u]) {
-		int v = e[i].to;
 		if (v == f) continue;
-		if (!dfn[v]) {
-			tarjan(v, u);
-			ckmin(low[u], low[v]);
-			if (low[v] > dfn[u]) vis[i] = vis[i ^ 1] = 1;  // cut edge
-		} else
+		if (!dfn[v])
+			tarjan(v, u), ckmin(low[u], low[v]);
+		else
 			ckmin(low[u], dfn[v]);
+	}
+	if (dfn[u] == low[u]) {
+		++totc;
+		int x;
+		do { x = st[top--], in[x] = 0, bel[x] = totc; } while (x != u);
 	}
 }
 \end{lstlisting}
@@ -205,14 +210,457 @@ for (int i = 1; i <= n; i++)
 	if (bel[i << 1] == bel[i << 1 | 1]) return puts("IMPOSSIBLE"), 0;
 puts("POSSIBLE");
 for (int i = 1; i <= n; i++) printf("%d ", bel[i << 1] > bel[i << 1 | 1]);\end{lstlisting}
-\subsection{最大流(Dinic)}
+\subsection{最大流}
+Dinic 算法
 \begin{lstlisting}
+namespace Dinic {
+	int N, S, T;
+	struct edge {
+		int to, nxt, cap;
+	} e[maxm << 1];
+	int head[maxn], cur[maxn], tot = 1;
+	int d[maxn];
+	void addedge(int u, int v, int c) {
+		e[++tot] = (edge){v, head[u], c}, head[u] = tot;
+		e[++tot] = (edge){u, head[v], 0}, head[v] = tot;
+	}
+	bool bfs(int S, int T) {
+		queue<int> q;
+		for (int i = 1; i <= N; i++) d[i] = 0;
+		d[S] = 1;
+		q.push(S);
+		while (!q.empty()) {
+			int u = q.front();
+			q.pop();
+			for (int i = head[u]; i; i = e[i].nxt) {
+				int v = e[i].to;
+				if (e[i].cap && !d[v]) {
+					d[v] = d[u] + 1, q.push(v);
+					if (v == T) return true;
+				}
+			}
+		}
+		return false;
+	}
+	int dfs(int u, int f) {
+		if (u == T) return f;
+		int r = f;
+		for (int& i = cur[u]; i && r; i = e[i].nxt) {
+			int v = e[i].to;
+			if (e[i].cap && d[v] == d[u] + 1) {
+				int x = dfs(v, min(e[i].cap, r));
+				if (!x) d[v] = 0;
+				e[i].cap -= x, e[i ^ 1].cap += x;
+				r -= x;
+			}
+		}
+		return f - r;
+	}
+	ll work(int _N, int _S, int _T) {
+		N = _N, S = _S, T = _T;
+		ll ans = 0;
+		while (bfs(S, T)) {
+			for (int i = 1; i <= N; i++) cur[i] = head[i];
 
+			ans += 1ll * dfs(S, INF);
+		}
+		return ans;
+	}
+}  // namespace Dinic
 \end{lstlisting}
+ISAP 算法
+\begin{lstlisting}
+namespace ISAP {
+	int N, S, T;
+	struct edge {
+		int to, nxt, cap;
+	} e[maxm << 1];
+	int head[maxn], cur[maxn], gap[maxn], dis[maxn], tot = 1;
+	void addedge(int u, int v, int w) {
+		e[++tot] = {v, head[u], w}, head[u] = tot;
+		e[++tot] = {u, head[v], 0}, head[v] = tot;
+	}
+	int ISAP(int u, int lim) {
+		if (u == T) return lim;
+		int res = 0;
+		for (int& i = cur[u]; i; i = e[i].nxt) {
+			int v = e[i].to;
+			if (e[i].cap && dis[u] == dis[v] + 1) {
+				ll det = ISAP(v, min(lim, e[i].cap));
+				e[i].cap -= det, e[i ^ 1].cap += det;
+				lim -= det, res += det;
+				if (!lim) return res;
+			}
+		}
+		cur[u] = head[u];
+		if (!--gap[dis[u]]) dis[S] = N + 1;
+		gap[++dis[u]]++;
+		return res;
+	}
+	ll work(int _N, int _S, int _T) {
+		S = _S, T = _T, N = _N;
+		ll res = 0;
+		while (dis[S] <= N) res += 1ll * ISAP(S, INF);
+		return res;
+	}
+}  // namespace ISAP
+\end{lstlisting}
+HLPP 算法
+\begin{lstlisting}
+namespace HLPP {  // by ProjectEMmm
+	int N, S, T;
+	struct edge {
+		int to, nxt, cap;
+	} e[maxm << 1];
+	int head[maxn], tot = 1;
+
+	int d[maxn], num[maxn];
+	stack<int> lib[maxn];
+	ll ex[maxn];
+	int level = 0;
+	void addedge(int u, int v, int c) {
+		e[++tot] = {v, head[u], c}, head[u] = tot;
+		e[++tot] = {u, head[v], 0}, head[v] = tot;
+	}
+	int Push(int u) {
+		bool init = (u == S);
+		for (int i = head[u]; i; i = e[i].nxt) {
+			const int &v = e[i].to, &c = e[i].cap;
+			if (!c || init == false && d[u] != d[v] + 1) continue;
+			ll k = init ? c : min((ll)c, ex[u]);
+			if (v != S && v != T && !ex[v] && d[v] < INF)
+				lib[d[v]].push(v), level = max(level, d[v]);
+			ex[u] -= k, ex[v] += k, e[i].cap -= k, e[i ^ 1].cap += k;
+			if (!ex[u]) return 0;
+		}
+		return 1;
+	}
+	void Relabel(int x) {
+		d[x] = INF;
+		for (int i = head[x]; i; i = e[i].nxt)
+			if (e[i].cap) d[x] = min(d[x], d[e[i].to]);
+		if (++d[x] < N) {
+			lib[d[x]].push(x);
+			level = max(level, d[x]);
+			++num[d[x]];
+		}
+	}
+	bool BFS() {
+		for (int i = 1; i <= N; ++i) {
+			d[i] = INF;
+			num[i] = 0;
+		}
+		queue<int> q;
+		q.push(T), d[T] = 0;
+		while (!q.empty()) {
+			int u = q.front();
+			q.pop();
+			num[d[u]]++;
+			for (int i = head[u]; i; i = e[i].nxt) {
+				const int& v = e[i].to;
+				if (e[i ^ 1].cap && d[v] > d[u] + 1) d[v] = d[u] + 1, q.push(v);
+			}
+		}
+		return d[S] != INF;
+	}
+	int Select() {
+		while (lib[level].size() == 0 && level > -1) level--;
+		return level == -1 ? 0 : lib[level].top();
+	}
+	ll work(int _N, int _S, int _T) {
+		N = _N, S = _S, T = _T;
+		if (!BFS()) return 0;
+		d[S] = N;
+		Push(S);
+		int x;
+		while (x = Select()) {
+			lib[level].pop();
+			if (!Push(x)) continue;
+			if (!--num[d[x]])
+				for (int i = 1; i <= N; ++i)
+					if (i != S && i != T && d[i] > d[x] && d[i] < N + 1)
+						d[i] = N + 1;
+			Relabel(x);
+		}
+		return ex[T];
+	}
+}  // namespace HLPP\end{lstlisting}
 \subsection{最小费用最大流}
 \begin{lstlisting}
+namespace MCMF {
+	using pr = pair<ll, int>;
+	int N, S, T;
+	struct edge {
+		int to, nxt, cap, w;
+	} e[maxm << 1];
+	int head[maxn], tot = 1;
+	void addedge(int x, int y, int cap, int w) {
+		e[++tot] = {y, head[x], cap, w}, head[x] = tot;
+		e[++tot] = {x, head[y], 0, -w}, head[y] = tot;
+	}
+	ll d[maxn], dis[maxn];
+	int vis[maxn], fr[maxn];
+	bool spfa() {
+		queue<int> Q;
+		fill(d + 1, d + N + 1, 1e18);  // CHECK
+		for (d[S] = 0, Q.push(S); !Q.empty();) {
+			int x = Q.front();
+			Q.pop();
+			vis[x] = 0;
+			for (int i = head[x]; i; i = e[i].nxt)
+				if (e[i].cap && d[e[i].to] > d[x] + e[i].w) {
+					d[e[i].to] = d[x] + e[i].w;
+					fr[e[i].to] = i;
+					if (!vis[e[i].to]) vis[e[i].to] = 1, Q.push(e[i].to);
+				}
+		}
+		return d[T] < 1e17;  // 如果只是最小费用流，当d < 0继续增广
+	}
+	bool dijkstra() {  // 正常题目不需要 dijk
+		priority_queue<pr, vector<pr>, greater<pr>> Q;
+		for (int i = 1; i <= N; ++i)
+			dis[i] = d[i], d[i] = 1e18, vis[i] = fr[i] = 0;  // CHECK
+		Q.emplace(d[S] = 0, S);
+		while (!Q.empty()) {
+			int x = Q.top().second;
+			Q.pop();
+			if (vis[x]) continue;
+			vis[x] = 1;
+			for (int i = head[x]; i; i = e[i].nxt) {
+				const ll v = e[i].w + dis[x] - dis[e[i].to];
+				if (e[i].cap && d[e[i].to] > d[x] + v) {
+					fr[e[i].to] = i;
+					Q.emplace(d[e[i].to] = d[x] + v, e[i].to);
+				}
+			}
+		}
+		for (int i = 1; i <= N; ++i) d[i] += dis[i];  // CHECK
+		return d[T] < 1e17;
+	}
+	std::pair<ll, ll> work(int _N, int _S, int _T) {
+		N = _N, S = _S, T = _T;
+		spfa();  // 如果初始有负权且要 dijk
+		ll f = 0, c = 0;
+		for (; dijkstra();) {  // 正常可以用 spfa
+			ll fl = 1e18;
+			for (int i = fr[T]; i; i = fr[e[i ^ 1].to])
+				fl = min((ll)e[i].cap, fl);
+			for (int i = fr[T]; i; i = fr[e[i ^ 1].to])
+				e[i].cap -= fl, e[i ^ 1].cap += fl;
+			f += fl, c += fl * d[T];
+		}
+		return make_pair(f, c);
+	}
+}  // namespace MCMF\end{lstlisting}
+\subsection{匹配}
+\subsubsection{二分图最大匹配-Hungary}
+\begin{lstlisting}
+// 匈牙利,左到右单向边, O (M |match|)
+int vis[maxn], match[maxn];
+bool dfs(int u) {
+	for (int v : G[u]) {
+		if (vis[v]) continue;
+		vis[v] = 1;
+		if (!match[v] || dfs(match[v])) return match[v] = u, 1;
+	}
+	return 0;
+}
+int work() {
+	for (int i = 1; i <= nl; i++)
+		if (dfs(i)) fill(vis + 1, vis + nr + 1, 0);
+}
+// 匈牙利,左到右单向边,bitset, O (n^2|match|/w)
+bitset<N> G[N], unvis;
+int match[N];
+bool dfs(int u) {
+	for (auto s = G[u];;) {
+		s &= unvis;
+		int v = s._Find_first();
+		if (v == N) return 0;
+		unvis.reset(v);
+		if (!match[v] || dfs(match[v])) return match[v] = u, 1;
+	}
+	return 0;
+}
+int work() {
+	unvis.set();
+	for (int i = 1; i <= nl; i++)
+		if (dfs(i)) unvis.set();
+}\end{lstlisting}
+\subsubsection{二分图最大匹配-HK}
+\begin{lstlisting}
+// HK, 左到右单向边, O(M \sqrt{|match|})
+int matchl[maxn], matchr[maxn], a[maxn], p[maxn];
+int HK() {
+	while (true) {
+		for (int i = 1; i <= nl; i++) a[i] = p[i] = 0;
+		queue<int> Q;
+		while (!Q.empty()) Q.pop();
+		for (int i = 1; i <= nl; i++)
+			if (!matchl[i]) a[i] = p[i] = i, Q.push(i);
+		int succ = 0;
+		while (!Q.empty()) {
+			int u = Q.front();
+			Q.pop();
+			if (matchl[a[u]]) continue;
+			for (int v : G[u]) {
+				if (!matchr[v]) {
+					for (succ = 1; v; u = p[u])
+						matchr[v] = u, swap(matchl[u], v);
+					break;
+				}
+				if (!p[matchr[v]])
+					Q.push(matchr[v]), p[matchr[v]] = u, a[matchr[v]] = a[u];
+			}
+		}
+		if (!succ) break;
+	}
+}\end{lstlisting}
+\subsubsection{二分图最大权匹配-KM}
+\begin{lstlisting}
+// KM 二分图最大权匹配 复杂度O(n^3)
+namespace KM {
+	int nl, nr;
+	ll e[maxn][maxn], lw[maxn], rw[maxn], mnw[maxn];
+	int lpr[maxn], rpr[maxn], vis[maxn], fa[maxn];
+	void addedge(int x, int y, ll w) {
+		ckmax(e[x][y], w), ckmax(lw[x], w);
+	}
+	void work(int x) {
+		int xx = x;
+		for (int i = 1; i <= nr; i++) vis[i] = 0, mnw[i] = 1e18;
+		while (true) {
+			for (int i = 1; i <= nr; i++)
+				if (!vis[i] && mnw[i] >= lw[x] + rw[i] - e[x][i])
+					ckmin(mnw[i], lw[x] + rw[i] - e[x][i]), fa[i] = x;
+			ll mn = 1e18;
+			int y = -1;
+			for (int i = 1; i <= nr; i++)
+				if (!vis[i] && mn >= mnw[i]) ckmin(mn, mnw[i]), y = i;
+			lw[xx] -= mn;
+			for (int i = 1; i <= nr; i++)
+				if (vis[i])
+					rw[i] += mn, lw[rpr[i]] -= mn;
+				else
+					mnw[i] -= mn;
+			if (rpr[y])
+				x = rpr[y], vis[y] = 1;
+			else {
+				while (y) rpr[y] = fa[y], swap(y, lpr[fa[y]]);
+				return;
+			}
+		}
+	}
+	void init(int _nl, int _nr) {
+		nl = _nl, nr = _nr;
+		if (nl > nr) nr = nl;
+		for (int i = 1; i <= nl; i++) lw[i] = -1e18;
+		for (int i = 1; i <= nl; i++)
+			for (int j = 1; j <= nr; j++) e[i][j] = 0;  // or -1e18
+	}
+	ll work() {
+		for (int i = 1; i <= nl; i++) work(i);
+		ll tot = 0;
+		for (int i = 1; i <= nl; i++) tot += e[i][lpr[i]];
+		return tot;
+	}
+}  // namespace KM\end{lstlisting}
+\subsubsection{一般图最大匹配-带花树}
+\begin{lstlisting}
+namespace blossom {
+	vector<int> G[maxn];
+	int f[maxn];
+	int n, match[maxn];
+	int getfa(int x) {
+		return f[x] == x ? x : f[x] = getfa(f[x]);
+	}
+	void addedge(int x, int y) {
+		G[x].push_back(y), G[y].push_back(x);
+	}
+	int pre[maxn], mk[maxn];
+	int vis[maxn], T;
+	queue<int> q;
+	int LCA(int x, int y) {
+		T++;
+		for (;; x = pre[match[x]], swap(x, y))
+			if (vis[x = getfa(x)] == T)
+				return x;
+			else
+				vis[x] = x ? T : 0;
+	}
+	void flower(int x, int y, int z) {
+		while (getfa(x) != z) {
+			pre[x] = y;
+			y = match[x];
+			f[x] = f[y] = z;
+			x = pre[y];
+			if (mk[y] == 2) q.push(y), mk[y] = 1;
+		}
+	}
+	void aug(int s) {
+		for (int i = 1; i <= n; i++) pre[i] = mk[i] = vis[i] = 0, f[i] = i;
+		q = {};
+		mk[s] = 1;
+		q.push(s);
+		while (q.size()) {
+			int x = q.front();
+			q.pop();
+			for (int v : G[x]) {
+				int y = v, z;
+				if (mk[y] == 2) continue;
+				if (mk[y] == 1)
+					z = LCA(x, y), flower(x, y, z), flower(y, x, z);
+				else if (!match[y]) {
+					for (pre[y] = x; y;)
+						x = pre[y], match[y] = x, swap(y, match[x]);
+					return;
+				} else
+					pre[y] = x, mk[y] = 2, q.push(match[y]), mk[match[y]] = 1;
+			}
+		}
+	}
+	int work() {
+		for (int i = 1; i <= n; i++) if (!match[i]) aug(i);
+		int res = 0;
+		for (int i = 1; i <= n; i++) res += match[i] > i;
+		return res;
+	}
+}  // namespace blossom\end{lstlisting}
+\subsubsection{一般图最大权匹配}
+待补充\subsection{最短路相关}
+\subsubsection{差分约束}
+$x_i$ 向 $x_j$ 连一条权值为 $c$ 的有向边表示 $x_j - x_i \le c$。
 
-\end{lstlisting}
+用 BF 判断是否存在负环,存在即无解。\subsubsection{最小环}
+记原图中 $u,v$ 之间边的边权为 $val\left(u,v\right)$。
+
+我们注意到 Floyd 算法有一个性质：在最外层循环到点 $k$ 时（尚未开始第 $k$ 次循环），最短路数组 $dis$ 中，$dis_{u,v}$ 表示的是从 $u$ 到 $v$ 且仅经过编号在 $\left[1, k\right)$ 区间中的点的最短路。
+
+由最小环的定义可知其至少有三个顶点，设其中编号最大的顶点为 $w$，环上与 $w$ 相邻两侧的两个点为 $u,v$，则在最外层循环枚举到 $k=w$ 时，该环的长度即为 $dis_{u,v}+val\left(v,w\right)+val\left(w,u\right)$。
+
+故在循环时对于每个 $k$ 枚举满足 $i<k,j<k$ 的 $(i,j)$，更新答案即可。\subsubsection{Steiner树}
+状态设计：$dp(i,S)$ 以 $i$ 为根，树中关键点集合为 $S$ 的最小值。
+
+\begin{enumerate}
+    \item[1.] 树根度数不为 $1$ ，考虑拆分成两个子集 $T,S-T$:
+    $$ dp(i,S) \gets dp(i,S-T)+dp(i,T) $$
+    \item[2.] 树根度数为 $1$ :
+    $$ dp(i,S) \gets dp(j,S)+w(i,j) $$
+
+    相当于超级源到每个顶点距离为$dp(i,S)$，求到每个顶点的最短路，dij即可。
+\end{enumerate}
+\subsection{流和匹配的建模技巧}
+二分图相关：
+\begin{itemize}
+    \item 二分图最小点覆盖：等于最大匹配$|match|$。否则可以将没覆盖的边加入匹配。
+    \item 二分图最大独立集：等于$n-|match|$，考虑最小点覆盖给所有边都至少有一边有点，取反后必然为最大独立集。
+    \item 二分图最小边覆盖：等于$n-|match|$，考虑最坏情况每个顶点都要一条边，一个匹配能减小1的贡献。
+    \item 最大团：等于补图的最大独立集。
+    \item Hall Theorem: 对于左部顶点集$X$，$\forall S\subseteq X, |N(S)|\ge |S|$。
+\end{itemize}
+
+网络流相关：
+
 \subsection{三四元环计数}
 \begin{lstlisting}
 static int id[maxn], rnk[maxn];
@@ -243,9 +691,8 @@ for (int i = 1; i <= n; i++) {
 		for (int v2 : G2[v1]) vis[v2] = 0;
 }\end{lstlisting}
 \subsection{支配树}
-DAG支配树
 \begin{lstlisting}
-namespace DomTree_DAG {
+namespace Dom_DAG {
 	int idom[maxn];
 	vector<int> G[maxn], ANS[maxn];  // ANS: final tree
 	int deg[maxn];
@@ -279,54 +726,133 @@ namespace DomTree_DAG {
 			}
 		}
 	}
-}  // namespace DomTree_DAG
-namespace DomTree {
-	vector<int> V[sz], rV[sz];
-	int dfn[sz], id[sz], anc[sz], cnt;
+}  // namespace Dom_DAG
+namespace Dom {
+	vector<int> G[maxn], rG[maxn];
+	int dfn[maxn], id[maxn], anc[maxn], cnt;
 	void dfs(int x) {
 		id[dfn[x] = ++cnt] = x;
-		for (int v : V[x])
+		for (int v : G[x])
 			if (!dfn[v]) {
-				BuildTree::V[x].push_back(v);
-				BuildTree::deg[v]++;
+				Dom_DAG::G[x].push_back(v);
+				Dom_DAG::deg[v]++;
 				anc[v] = x;
 				dfs(v);
 			}
 	}
-	int fa[sz], mn[sz];
+	int fa[maxn], mn[maxn];
 	int find(int x) {
 		if (x == fa[x]) return x;
 		int tmp = fa[x];
 		fa[x] = find(fa[x]);
-		chkmin(mn[x], mn[tmp]);
+		ckmin(mn[x], mn[tmp]);
 		return fa[x];
 	}
-	int semi[sz];
+	int semi[maxn];
 	void work() {
 		dfs(1);
-		rep(i, 1, n) fa[i] = i, mn[i] = 1e9, semi[i] = i;
-		drep(w, n, 2) {
+		for (int i = 1; i <= n; i++) fa[i] = i, mn[i] = 1e9, semi[i] = i;
+		for (int w = n; w >= 2; w--) {
 			int x = id[w];
 			int cur = 1e9;
 			if (w > cnt) continue;
-			for (int v : rV[x]) {
+			for (int v : rG[x]) {
 				if (!dfn[v]) continue;
 				if (dfn[v] < dfn[x])
-					chkmin(cur, dfn[v]);
+					ckmin(cur, dfn[v]);
 				else
-					find(v), chkmin(cur, mn[v]);
+					find(v), ckmin(cur, mn[v]);
 			}
 			semi[x] = id[cur];
 			mn[x] = cur;
 			fa[x] = anc[x];
-			BuildTree::V[semi[x]].push_back(x);
-			BuildTree::deg[x]++;
+			Dom_DAG::G[semi[x]].push_back(x);
+			Dom_DAG::deg[x]++;
 		}
 	}
-	void link(int x, int y) {
-		V[x].push_back(y), rV[y].push_back(x);
+	void addedge(int x, int y) {
+		G[x].push_back(y), rG[y].push_back(x);
 	}
-}  // namespace DomTree\end{lstlisting}
+}  // namespace Dom\end{lstlisting}
+\subsection{图论计数}
+\subsubsection{Prufer序列}
+有标号无根树和其prufer编码一一对应, 一颗 $n$ 个点的树, 其prufer编码长度为 $n - 2$, 且度数为 $d_i$ 的点在prufer编码中出现 $di - 1$ 次.
+
+由树得到序列: 总共需要 $n - 2$ 步, 第 $i$ 步在当前的树中寻找具有最小标号的叶子节点, 将与其相连的点的标
+号设为Prufer序列的第 $i$ 个元素 $p_i$ , 并将此叶子节点从树中删除, 直到最后得到一个长度为 $n - 2$ 的Prufer 序
+列和一个只有两个节点的树.
+
+由序列得到树: 先将所有点的度赋初值为 $1$, 然后加上它的编号在Prufer序列中出现的次数, 得到每个点的度;
+执行 $n - 2$ 步, 第 $i$ 步选取具有最小标号的度为 $1$ 的点 $u$ 与 $v = p_i$ 相连, 得到树中的一条边, 并将 $u$ 和 $v$ 的度
+减一. 最后再把剩下的两个度为 $1$ 的点连边, 加入到树中.
+
+推论:
+
+\begin{itemize}
+    \item $n$ 个点完全图, 要求每个点度数依次为 $d_1, d_2 ,\cdots,d_n$, 这样生成树的棵树为: $\dfrac{(n-2)!}{\prod (d_i-1)!}$
+    \item 左边有 $n_1$ 个点, 右边有 $n_2$ 个点的完全二分图的生成树棵树为 $n_1^{n_2-1}\times n_2^{n_1-1}$
+    \item $m$个连通块, 每个连通块有 $c_i$ 个点, 把他们全部连通的生成树方案数: $(\sum c_i)^{m-2} \prod c_i$
+\end{itemize}
+
+\subsubsection{无标号树计数}
+\begin{enumerate}
+    \item[(1)]有根树计数： $$f_n = \dfrac{ \sum_{i=1}^{n-1} f_{n-i} \sum_{d \mid i} f_d \cdot d}{n-1}$$
+    
+    记$g_i = \sum_{d \mid i} f_d \cdot d$ 即可做到$\Theta(n^2)$。
+    \item[(2)]无根树计数：
+    
+    当 $n$ 是奇数时
+
+    如果根不是重心，必然存在恰好一个子树，它的大小超过 $\left\lfloor\dfrac n2\right\rfloor$（设它的大小为 $k$）减去这种情况即可。
+    
+    因此答案为
+    $$f_n-\sum_{k=\lfloor\frac n2\rfloor+1}^{n-1}f_k\cdot f_{n-k}$$
+    
+    当 $n$ 是偶数时
+    
+    有可能存在两个重心，且其中一个是根（即存在一棵子树大小恰为 $\dfrac n2$），额外减去$\dbinom{f_{\frac n2}}2$即可
+\end{enumerate}
+
+\subsubsection{有标号DAG计数}
+
+$$
+F_i=\sum_{j=1}^i \binom{i}{j}(-1)^{j+1}2^{j(i-j)}F_{i-j}
+$$
+
+想法是按照拓扑序分层，每次剥开所有入度为零的点。
+
+\subsubsection{有标号连通简单图计数}
+
+记$g(n)=2^{\binom n2}$为有标号简单图数量，$c(n)$为有标号简单连通图数量，那么枚举$1$所在连通块大小，有
+
+$$
+g(n) = \sum_{i=1}^n \dbinom{n-1}{i-1}c(i)g(n-i)
+$$
+
+易递推求$c(n)$。多项式做法考虑exp组合意义即可。
+
+\subsubsection{生成树计数}
+Kirchhoff Matrix $T = Deg - A$, $Deg$ 是度数对角阵, $A$ 是邻接矩阵. 
+
+无向图度数矩阵是每个点度数; 有向图度数矩阵是每个点入度.
+
+邻接矩阵 $A[u][v]$ 表示 $u \to v$ 边个数, 重边按照边数计算, 自环不计入度数.
+
+无向图生成树计数: $c = |K的任意1个 n-1 阶主子式|$
+
+有向图外向树计数: $c = |去掉根所在的那阶得到的主子式|$
+
+若求边权和则邻接矩阵可以设为$(1+wx)$，相当于一次项的系数。
+
+\subsubsection{BEST定理}
+设 $G$ 是有向欧拉图，$k$ 为任意顶点，那么 $G$ 的不同欧拉回路总数 $\mathrm{ec}(G)$ 是
+
+$$
+\mathrm{ec}(G) = t^\mathrm{root}(G,k)\prod_{v\in V}(\deg (v) - 1)!.
+$$
+
+
+
 \clearpage\section{数论}
 Delete This
 \begin{lstlisting}
