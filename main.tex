@@ -202,8 +202,8 @@ void tarjan(int u, int f) {
 }
 \end{lstlisting}
 \subsection{2-SAT}
-构造方案时可以通过变量在图中的拓扑序确定该变量的取值。
-如果变量$x$的拓扑序在$\lnot x$之后,那么取$x$值为真。
+构造方案时可以通过变量在图中的拓扑序确定该变量的取值。\\
+如果变量$x$的拓扑序在$\lnot x$之后,那么取$x$值为真。\\
 因为Tarjan 算法求强连通分量时使用了栈,所以 Tarjan 求得的 SCC
 编号相当于反拓扑序。
 \begin{lstlisting}
@@ -674,9 +674,9 @@ $x_i$ 向 $x_j$ 连一条权值为 $c$ 的有向边表示 $x_j - x_i \le c$。
     \end{itemize}
     若$S$的出边全部流满则存在解。
     \item 有源汇上下界可行流：原图源汇连边$(T\to S,(0,\infty))$，则转化为无源汇。
-    \item 有源汇上下界最大流：从 $T$ 到 $S$ 连一条下界为 $0$，上界为 $+\infty$ 的边，转化为无源汇网络。按照**无源汇上下界可行流**的做法求一次无源汇上下界超级源$SS$到超级汇$TT$的最大流。
+    \item 有源汇上下界最大流：从 $T$ 到 $S$ 连一条下界为 $0$，上界为 $+\infty$ 的边，转化为无源汇网络。按照无源汇上下界可行流的做法求一次无源汇上下界超级源$SS$到超级汇$TT$的最大流。
     删去所有附加边，在上一步的\textbf{残量网络}基础上，求一次 $S$ 到 $T$ 的最大流。两者之和即为答案。
-    \item 有源汇上下界最小流：从 $T$ 到 $S$ 连一条下界为 $0$，上界为 $+\infty$ 的边，转化为无源汇网络。按照**无源汇上下界可行流**的做法求一次无源汇上下界超级源$SS$到超级汇$TT$的最大流。
+    \item 有源汇上下界最小流：从 $T$ 到 $S$ 连一条下界为 $0$，上界为 $+\infty$ 的边，转化为无源汇网络。按照无源汇上下界可行流的做法求一次无源汇上下界超级源$SS$到超级汇$TT$的最大流。
     删去所有附加边，在上一步的\textbf{残量网络}基础上，求一次 $T$ 到 $S$ 的最大流。两者之差即为答案。
     \item 最小费用可行流：同有源汇上下界可行流，在超级源汇跑最小费用最大流，答案为费用+下界流量的费用。
     \item 平面图最小割 = 对偶图最短路
@@ -868,12 +868,54 @@ Kirchhoff Matrix $T = Deg - A$, $Deg$ 是度数对角阵, $A$ 是邻接矩阵.
 设 $G$ 是有向欧拉图，$k$ 为任意顶点，那么 $G$ 的不同欧拉回路总数 $\mathrm{ec}(G)$ 是
 
 $$
-\mathrm{ec}(G) = t^\mathrm{root}(G,k)\prod_{v\in V}(\deg (v) - 1)!.
+\mathrm{ec}(G) = t^\mathrm{root}(k)\prod_{v\in V}(\deg (v) - 1)!.
 $$
 
+$t^\mathrm{root}(k)$为以$k$为根的外向树个数。\clearpage\section{树论}
+\subsection{快速LCA}
+查询$[dfn_u + 1 , dfn_v]$深度最小节点的父亲\\
+可以简化为在 ST 表的最底层记录父亲，比较时取时间戳较小的结点。\\
+取决于st表实现可以做到$O(n)$ or $O(n\log n)$
+\begin{lstlisting}
+int getmin(int x, int y) {
+	return dfn[x] < dfn[y] ? x : y;
+}
 
+void dfs(int u, int f) {
+	dfn[u] = ++tim;
+	a[dfn[u]] = f;
+	for (int v : e[u])
+		if (v != f) dfs(v, u);
+}
+int lca(int u, int v) {
+	if (u == v) return u;
+	if ((u = dfn[u]) > (v = dfn[v])) swap(u, v);
+	return RMQ(dfn[u] + 1, dfn[v]);
+}\end{lstlisting}
+\subsection{虚树}
+\begin{lstlisting}
 
-\clearpage\section{树论}
+\end{lstlisting}
+\subsection{长链剖分}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsection{静态点分治}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsection{点分树}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsection{动态dp}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsection{树上背包}
+\begin{lstlisting}
+
+\end{lstlisting}
 \clearpage\section{数论}
 Delete This
 \begin{lstlisting}
