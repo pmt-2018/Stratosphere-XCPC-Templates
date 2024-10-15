@@ -1,0 +1,10 @@
+状态设计：$dp(i,S)$ 以 $i$ 为根，树中关键点集合为 $S$ 的最小值。
+
+\begin{enumerate}
+    \item[1.] 树根度数不为 $1$ ，考虑拆分成两个子集 $T,S-T$:
+    $$ dp(i,S) \gets dp(i,S-T)+dp(i,T) $$
+    \item[2.] 树根度数为 $1$ :
+    $$ dp(i,S) \gets dp(j,S)+w(i,j) $$
+
+    相当于超级源到每个顶点距离为$dp(i,S)$，求到每个顶点的最短路，dij即可。
+\end{enumerate}
