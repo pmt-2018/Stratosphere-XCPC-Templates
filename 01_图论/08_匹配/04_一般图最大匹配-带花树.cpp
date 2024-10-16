@@ -51,7 +51,8 @@ namespace blossom {
 		}
 	}
 	int work() {
-		for (int i = 1; i <= n; i++) if (!match[i]) aug(i);
+		for (int i = 1; i <= n; i++)
+			if (!match[i]) aug(i);
 		int res = 0;
 		for (int i = 1; i <= n; i++) res += match[i] > i;
 		return res;

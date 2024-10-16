@@ -13,19 +13,19 @@ AlignConsecutiveDeclarations:	false
 # 左对齐逃脱换行(使用反斜杠换行)的反斜杠
 AlignEscapedNewlinesLeft:	true
 # 水平对齐二元和三元表达式的操作数
-AlignOperands:	true
+AlignOperands: true
 # 对齐连续的尾随的注释
-AlignTrailingComments:	true
+AlignTrailingComments: true
 # 允许函数声明的所有参数在放在下一行
-AllowAllParametersOfDeclarationOnNextLine:	true
+AllowAllParametersOfDeclarationOnNextLine: true
 # 允许短的块放在同一行
-AllowShortBlocksOnASingleLine:	true
+AllowShortBlocksOnASingleLine: Always
 # 允许短的case标签放在同一行
-AllowShortCaseLabelsOnASingleLine:	true
+AllowShortCaseLabelsOnASingleLine: true
 # 允许短的函数放在同一行: None, InlineOnly(定义在类中), Empty(空函数), Inline(定义在类中，空函数), All
 AllowShortFunctionsOnASingleLine:	Empty
 # 允许短的if语句保持在同一行
-AllowShortIfStatementsOnASingleLine:	true
+AllowShortIfStatementsOnASingleLine: true
 # 允许短的循环保持在同一行
 AllowShortLoopsOnASingleLine:	true
 # 总是在定义返回类型后换行(deprecated)

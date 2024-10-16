@@ -32,7 +32,7 @@
   keepspaces=true,                      % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
   keywordstyle=\color{blue},            % keyword style
   language=c++,                         % the language of the code
-  lineskip=-0.2ex,
+  % lineskip=-0.2ex,
   morekeywords={*,...},                 % if you want to add more keywords to the set
   numbers=left,                         % where to put the line-numbers; possible values are (none, left, right)
   numbersep=5pt,                        % how far the line-numbers are from the code
@@ -202,7 +202,7 @@ void tarjan(int u, int f) {
 }
 \end{lstlisting}
 \subsection{2-SAT}
-构造方案时可以通过变量在图中的拓扑序确定该变量的取值。\\
+\noindent 构造方案时可以通过变量在图中的拓扑序确定该变量的取值。\\
 如果变量$x$的拓扑序在$\lnot x$之后,那么取$x$值为真。\\
 因为Tarjan 算法求强连通分量时使用了栈,所以 Tarjan 求得的 SCC
 编号相当于反拓扑序。
@@ -873,9 +873,9 @@ $$
 
 $t^\mathrm{root}(k)$为以$k$为根的外向树个数。\clearpage\section{树论}
 \subsection{快速LCA}
-查询$[dfn_u + 1 , dfn_v]$深度最小节点的父亲\\
+\noindent 查询$[dfn_u + 1 , dfn_v]$深度最小节点的父亲\\
 可以简化为在 ST 表的最底层记录父亲，比较时取时间戳较小的结点。\\
-取决于st表实现可以做到$O(n)$ or $O(n\log n)$
+取决于st表实现可以做到$O(n)$ or $O(n\log n)$预处理 $O(1)$查询
 \begin{lstlisting}
 int getmin(int x, int y) {
 	return dfn[x] < dfn[y] ? x : y;
