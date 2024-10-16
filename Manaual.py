@@ -32,7 +32,7 @@ TexHead = r"""
   deletekeywords={...},                 % if you want to delete keywords from the given language
   escapeinside={\%*}{*)},               % if you want to add LaTeX within your code
   extendedchars=true,                   % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
-  firstnumber=1000,                     % start line enumeration with line 1000
+  firstnumber=1,                     % start line enumeration with line 1000
   frame=single,	                        % adds a frame around the code
   keepspaces=true,                      % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
   keywordstyle=\color{blue},            % keyword style

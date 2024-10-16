@@ -49,7 +49,6 @@ namespace Dinic {
 		ll ans = 0;
 		while (bfs(S, T)) {
 			for (int i = 1; i <= N; i++) cur[i] = head[i];
-
 			ans += 1ll * dfs(S, INF);
 		}
 		return ans;

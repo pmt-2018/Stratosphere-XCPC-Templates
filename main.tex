@@ -27,12 +27,12 @@
   deletekeywords={...},                 % if you want to delete keywords from the given language
   escapeinside={\%*}{*)},               % if you want to add LaTeX within your code
   extendedchars=true,                   % lets you use non-ASCII characters; for 8-bits encodings only, does not work with UTF-8
-  firstnumber=1000,                     % start line enumeration with line 1000
+  firstnumber=1,                     % start line enumeration with line 1000
   frame=single,	                        % adds a frame around the code
   keepspaces=true,                      % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
   keywordstyle=\color{blue},            % keyword style
   language=c++,                         % the language of the code
-  % lineskip=-0.2ex,
+  lineskip=-0.2ex,
   morekeywords={*,...},                 % if you want to add more keywords to the set
   numbers=left,                         % where to put the line-numbers; possible values are (none, left, right)
   numbersep=5pt,                        % how far the line-numbers are from the code
@@ -262,7 +262,6 @@ namespace Dinic {
 		ll ans = 0;
 		while (bfs(S, T)) {
 			for (int i = 1; i <= N; i++) cur[i] = head[i];
-
 			ans += 1ll * dfs(S, INF);
 		}
 		return ans;
@@ -621,36 +620,15 @@ namespace blossom {
 		}
 	}
 	int work() {
-		for (int i = 1; i <= n; i++) if (!match[i]) aug(i);
+		for (int i = 1; i <= n; i++)
+			if (!match[i]) aug(i);
 		int res = 0;
 		for (int i = 1; i <= n; i++) res += match[i] > i;
 		return res;
 	}
 }  // namespace blossom\end{lstlisting}
 \subsubsection{一般图最大权匹配}
-待补充\subsection{最短路相关}
-\subsubsection{差分约束}
-$x_i$ 向 $x_j$ 连一条权值为 $c$ 的有向边表示 $x_j - x_i \le c$。
-
-用 BF 判断是否存在负环,存在即无解。\subsubsection{最小环}
-记原图中 $u,v$ 之间边的边权为 $val\left(u,v\right)$。
-
-我们注意到 Floyd 算法有一个性质：在最外层循环到点 $k$ 时（尚未开始第 $k$ 次循环），最短路数组 $dis$ 中，$dis_{u,v}$ 表示的是从 $u$ 到 $v$ 且仅经过编号在 $\left[1, k\right)$ 区间中的点的最短路。
-
-由最小环的定义可知其至少有三个顶点，设其中编号最大的顶点为 $w$，环上与 $w$ 相邻两侧的两个点为 $u,v$，则在最外层循环枚举到 $k=w$ 时，该环的长度即为 $dis_{u,v}+val\left(v,w\right)+val\left(w,u\right)$。
-
-故在循环时对于每个 $k$ 枚举满足 $i<k,j<k$ 的 $(i,j)$，更新答案即可。\subsubsection{Steiner树}
-状态设计：$dp(i,S)$ 以 $i$ 为根，树中关键点集合为 $S$ 的最小值。
-
-\begin{enumerate}
-    \item[1.] 树根度数不为 $1$ ，考虑拆分成两个子集 $T,S-T$:
-    $$ dp(i,S) \gets dp(i,S-T)+dp(i,T) $$
-    \item[2.] 树根度数为 $1$ :
-    $$ dp(i,S) \gets dp(j,S)+w(i,j) $$
-
-    相当于超级源到每个顶点距离为$dp(i,S)$，求到每个顶点的最短路，dij即可。
-\end{enumerate}
-\subsection{流和匹配的建模技巧}
+待补充\subsection{流和匹配的建模技巧}
 \subsubsection{二分图相关}
 \begin{itemize}
     \item 二分图最小点覆盖：等于最大匹配$|match|$。从每一个非匹配点出发，沿着非匹配边正向进行遍历，沿着匹配边反向进行遍历到的点进行标记。选取左部点中没有被标记过的点，右部点中被标记过的点，则这些点可以形成该二分图的最小点覆盖。
@@ -681,6 +659,28 @@ $x_i$ 向 $x_j$ 连一条权值为 $c$ 的有向边表示 $x_j - x_i \le c$。
     \item 最小费用可行流：同有源汇上下界可行流，在超级源汇跑最小费用最大流，答案为费用+下界流量的费用。
     \item 平面图最小割 = 对偶图最短路
 \end{itemize}
+\subsection{最短路相关}
+\subsubsection{差分约束}
+$x_i$ 向 $x_j$ 连一条权值为 $c$ 的有向边表示 $x_j - x_i \le c$。
+
+用 BF 判断是否存在负环,存在即无解。\subsubsection{最小环}
+记原图中 $u,v$ 之间边的边权为 $val\left(u,v\right)$。
+
+我们注意到 Floyd 算法有一个性质：在最外层循环到点 $k$ 时（尚未开始第 $k$ 次循环），最短路数组 $dis$ 中，$dis_{u,v}$ 表示的是从 $u$ 到 $v$ 且仅经过编号在 $\left[1, k\right)$ 区间中的点的最短路。
+
+由最小环的定义可知其至少有三个顶点，设其中编号最大的顶点为 $w$，环上与 $w$ 相邻两侧的两个点为 $u,v$，则在最外层循环枚举到 $k=w$ 时，该环的长度即为 $dis_{u,v}+val\left(v,w\right)+val\left(w,u\right)$。
+
+故在循环时对于每个 $k$ 枚举满足 $i<k,j<k$ 的 $(i,j)$，更新答案即可。\subsubsection{Steiner树}
+状态设计：$dp(i,S)$ 以 $i$ 为根，树中关键点集合为 $S$ 的最小值。
+
+\begin{enumerate}
+    \item[1.] 树根度数不为 $1$ ，考虑拆分成两个子集 $T,S-T$:
+    $$ dp(i,S) \gets dp(i,S-T)+dp(i,T) $$
+    \item[2.] 树根度数为 $1$ :
+    $$ dp(i,S) \gets dp(j,S)+w(i,j) $$
+
+    相当于超级源到每个顶点距离为$dp(i,S)$，求到每个顶点的最短路，dij即可。
+\end{enumerate}
 \subsection{三四元环计数}
 \begin{lstlisting}
 static int id[maxn], rnk[maxn];
@@ -880,11 +880,10 @@ $t^\mathrm{root}(k)$为以$k$为根的外向树个数。\clearpage\section{树�
 int getmin(int x, int y) {
 	return dfn[x] < dfn[y] ? x : y;
 }
-
 void dfs(int u, int f) {
 	dfn[u] = ++tim;
-	a[dfn[u]] = f;
-	for (int v : e[u])
+	a[dfn[u]] = f;  // TODO: build ST for a[i]
+	for (int v : G[u])
 		if (v != f) dfs(v, u);
 }
 int lca(int u, int v) {
@@ -894,30 +893,300 @@ int lca(int u, int v) {
 }\end{lstlisting}
 \subsection{虚树}
 \begin{lstlisting}
-
-\end{lstlisting}
+vector<int> Gn[maxn];
+int st[maxn], top;
+void build(vector<int> v) {
+	sort(v.beign(), v.end(),
+	     [&](const int& a, const int& b) { return dfn[a] < dfn[b]; });
+	top = 0;
+	if (v[0] != 1) st[++top] = 1;  // Assume 1 is the root
+	for (int u : v) {
+		if (!top) {
+			st[++top] = u;
+			continue;
+		}
+		int anc = lca(st[top], u);
+		if (anc == st[top]) {
+			st[++top] = u;
+			continue;
+		}
+		while (top > 1 && dfn[lca] <= dfn[st[top - 1]]) {
+			Gn[st[top - 1]].pb(st[top]), top--;
+		}
+		if (anc != st[top]) Gn[anc].pb(st[top]), st[top] = anc;
+		st[++top] = u;
+	}
+	while (top) Gn[st[top - 1]].pb(st[top]), top--;
+}
+// use DFS to clear Gn\end{lstlisting}
 \subsection{长链剖分}
-\begin{lstlisting}
+\subsubsection{优化dp}
+\noindent 优化以深度为下标的树形DP\\
+例如$dp(u,i)$表示$u$子树到达$u$距离为$i$的顶点信息，则考虑对于树进行长链剖分，$dfn_u$表示$u$在长链剖分的$dfn$序。\\
+则可以将$dp(u,i)$记为$dp(dfn_u+i)$，就可以做到长链直接继承。
+\subsubsection{k级祖先}
+待补充
 
-\end{lstlisting}
 \subsection{静态点分治}
 \begin{lstlisting}
-
-\end{lstlisting}
+void get_root(int u, int f) {
+	sz[u] = 1, wt[u] = 0;
+	for (int v : G[u]) {
+		if (v == f || vis[v]) continue;
+		get_root(v, u), sz[u] += sz[v], ckmax(wt[u], sz[v]);
+	}
+	ckmax(wt[u], Tsize - sz[u]);
+	if (wt[Rt] > wt[u]) Rt = u;
+}
+void solve(int u) {
+	vis[u] = 1;
+	for (int v : G[u]) {
+		if (vis[v]) continue;
+		Rt = 0, Tsize = sz[v], get_root(v, 0);
+		solve(Rt);
+	}
+}
+wt[Rt = 0] = INF, Tsize = n;
+get_root(1, 0);
+solve(Rt);\end{lstlisting}
 \subsection{点分树}
+待验证，以下为邻域点权和模版(震波)
 \begin{lstlisting}
-
-\end{lstlisting}
+void build(int u) {
+	vis[u] = 1;
+	t2[u].add(0, a[u]);
+	for (int v : G[u]) {
+		if (vis[v]) continue;
+		Rt = 0, mxdep = 0, Tsize = sz[v];
+		get_root(v, 0, 1);
+		fa[Rt] = u;
+		t1[Rt].init(mxdep + 5);
+		t2[Rt].init(mxdep + 5);
+		get_dis(v, u, 1);
+		build(Rt);
+	}
+}
+void modify(int u, int val) {
+	for (int i = u; i; i = fa[i]) {
+		t2[i].add(dis(u, i), val - a[u]);
+		if (fa[i]) t1[i].add(dis(u, fa[i]), val - a[u]);
+	}
+	a[u] = val;
+}
+int query(int u, int k) {
+	int rt = 0;
+	for (int i = u; i; i = fa[i]) {
+		rt += t2[i].query(k - dis(u, i));
+		if (fa[i]) rt -= t1[i].query(k - dis(u, fa[i]));
+	}
+	return rt;
+}\end{lstlisting}
 \subsection{动态dp}
 \begin{lstlisting}
+void dfs1(int u) {
+	siz[u] = 1;
+	dep[u] = dep[fa[u]] + 1;
+	for (int v : G[u]) {
+		dfs1(v);
+		siz[u] += siz[v];
+		if (siz[v] > siz[son[u]]) son[u] = v;
+	}
+}
+int endc[maxn];
+Vector dp[maxn];  // F[u] 为 u 的 dp 值
+Matrix trans[maxn];
+// 考虑u点所有轻儿子以及u点点权的贡献转移矩阵，则某点u的dp值为 trans[u]*dp[son[u]]
+void dfs2(int u, int t) {
+	dfn[u] = ++tim, id[tim] = u;
+	top[u] = t, endc[t] = max(endc[t], tim);
+	// TODO: 初始化 F[u] 和 trans[u]
+	if (son[u]) dfs2(son[u], t);
+	for (int v : G[u]) {
+		if (v == son[u]) continue;
+		dfs2(v, v);
+		// TODO: 用 dp[v] 更新 trans[u]
+	}
+	dp[u] = trans[u] * dp[son[u]];
+}
 
-\end{lstlisting}
+struct Segtree {
+	Matrix t[maxn << 2];
+	void build(int u, int l, int r);  // t[u] = trans[id[x]];
+	void pushup(int u);
+	void update(int u, int l, int r, int x);  // t[u] = trans[id[x]]
+	Matrix query(int u, int l, int r, int L, int R);
+} T;
+
+void update(int u) {
+	// TODO: 更新 trans[u] 和 dp[u]
+	Matrix aft;
+	while (u != 0) {
+		T.update(1, 1, n, dfn[u]);
+		aft = T.query(1, 1, n, dfn[top[u]], endc[top[u]]);
+		int v = top[u];
+		u = fa[v];
+		if (u) {}  // TODO: 用 aft 更新 trans[u] 和 dp[u]
+	}
+}
+Vector query() {
+	return T.query(1, 1, n, id[1], endc[1]) * dp[id[endc[1]]];
+}\end{lstlisting}
 \subsection{树上背包}
+\begin{lstlisting}
+// 背包大小上界为 m，复杂度为 O(nm)
+void solve(int u) {
+	sz[u] = 1;
+	for (int v : G[u]) {
+		solve(v);
+		for (int i = 0; i <= m; i++) tmp[i] = 0;
+		for (int i = 0; i <= min(m, sz[u]); i++)
+			for (int j = 0; j <= min(m - i, sz[v]); j++)
+				update(tmp[i + j], dp[u][i], dp[v][j]);
+		sz[u] += sz[v];  // DON'T MOVE THIS!!!
+		for (int i = 0; i <= m; i++) dp[u][i] = tmp[i];
+	}
+}\end{lstlisting}
+\clearpage\section{数论}
+\subsection{数论分块}
+\noindent 每一次 $[l,r]$ 都是 $n/l = n/r , m/l = m/r$ 的极大区间。\\
+多个 $n, m$ 只要对多个 $n/(n/l)$ 取 $\min$ 即可，复杂度为$O(|cnt|\sqrt V)$
+\begin{lstlisting}
+for (ll l = 1, r = 1; l <= min(n, m); l = r + 1) {
+	r = min(n / (n / l), m / (m / l));
+	// Do something here
+}\end{lstlisting}
+\subsection{积性函数线性筛}
+欧拉函数和莫比乌斯函数可以更简单的线性筛，见注释
+\begin{lstlisting}
+bool vis[maxn];
+int prime[maxn], totp, mnpe[maxn], f[maxn];
+void init() {
+	vis[1] = 1;
+	mnpe[1] = 1;  // mu[1] = ph[1] = 1
+	for (int i = 2; i <= N; i++) {
+		if (!vis[i])
+			prime[++totp] = i, mnpe[i] = i;  // mu[i] = -1, phi[i] = i - 1;
+		for (int j = 1; j <= totp && i * prime[j] <= N; j++) {
+			if (i % prime[j] == 0) {
+				mnpe[i * prime[j]] = mnpe[i] * prime[j];
+				// mu[i * prime[j]] = 0;
+				// phi[i * prime[j]] = phi[i] * prime[j];
+				break;
+			}
+			vis[i * prime[j]] = 1;
+			mnpe[i * prime[j]] = prime[j];
+			// mu[i * prime[j]] = -mu[i];
+			// phi[i * prime[j]] = phi[i] * (prime[j] - 1);
+		}
+	}
+	for (int i = 1; i <= totp; i++)
+		for (int e = 1, p = prime[i]; p <= N; e++, p *= prime[i]) {
+			// TODO: 在这里计算素数幂处的值 f[p]
+		}
+	for (int i = 1; i <= N; i++)
+		if (i != mnpe[i]) f[i] = f[mnpe[i]] * f[i / mnpe[i]];
+}\end{lstlisting}
+\subsection{筛子}
+\subsubsection{杜教筛}
 \begin{lstlisting}
 
 \end{lstlisting}
-\clearpage\section{数论}
-Delete This
+\subsubsection{min-25筛(质数个数)}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsubsection{min-25筛}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsubsection{PowerfulNumber筛}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsubsection{洲阁筛}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsection{扩展欧几里得}
+\begin{lstlisting}
+ll exgcd(ll a, ll b, ll& x, ll& y) {
+	if (!b)
+		return x = 1, y = 0, a;
+	else {
+		ll rt = exgcd(b, a % b, y, x);
+		y -= (a / b) * x;
+		return rt;
+	}
+}\end{lstlisting}
+\subsection{欧拉定理}
+当$(a,m)=1$时，
+$$a^{\varphi(m)}\equiv 1(\bmod\ m)$$。
+
+当$(a,m)\neq 1$时，
+
+$$a^b\equiv a^{\min\{b, b \bmod\ \varphi(m)+\varphi(m)\}}(\bmod\ m)$$。\subsection{中国剩余定理}
+解方程：
+\[
+    \begin{cases}
+        x\equiv a_1(\bmod\ m_1)\\
+        x\equiv a_2(\bmod\ m_2)\\
+        \vdots\\
+        x\equiv a_n(\bmod\ m_n)
+    \end{cases}
+\]
+若 $m_i$ 两两互质，则可以使用以下公式得到：
+\[
+\begin{aligned}
+    x \equiv \sum_{i=1}^n M_i \times N_i \times a_i (\bmod\ M)\\
+    \text{where:}
+    \begin{cases}
+        M = \prod_{i=1}^n m_i \\
+        M_i = \frac{M}{m_i}\\
+        N_i \times M_i \equiv 1 (\bmod\ m_i)
+    \end{cases}
+\end{aligned}
+\]
+否则参考以下exCRT。
+\begin{lstlisting}
+ll exCRT(vector<int> a, vector<int> m) {
+	assert(a.size() == m.size());
+	ll ans = a[0], M = b[0];
+	for (int i = 1; i < a.size(); i++) {
+		ll x = 0, y = 0;
+		ll A = M, B = m[i], C = (a[i] - ans % B + B) % B;
+		ll gcd = exgcd(A, B, x, y), bg = B / gcd;
+		x = x * (C / gcd) % B;
+		ans += x * M;
+		M *= bg;
+		ans = (ans % M + M) % M;
+	}
+	return (ans % M + M) % M;
+}
+\end{lstlisting}
+\subsection{BSGS}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsection{Millar-Robin}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsection{Pollard-Rho}
+\begin{lstlisting}
+
+\end{lstlisting}
+\subsection{原根}
+ 你说的对，但是感觉不如原根。\par 原根，是一个数学符号。设 $m$ 是正整数，$a$
+ 是整数，若 $a$ 模 $m$ 的阶等于 $\varphi(m)$，则称 $a$ 为模 $m$
+ 的一个原根。\par 假设一个数 $g$ 是 $p\in\textbf P$ 的原根，那么 $\forall
+ 0<i<p,g^i \bmod p$ 的结果两两不同，归根到底就是 $g^a \equiv 1 \pmod p$
+ 当且仅当指数 $a$ 为 $p-1$ 的倍数时成立。\par
+ 你的数学很差，我现在每天用原根都能做 $10^5$ 次数据规模 $10^6$ 的
+ NTT，每个月差不多 $3\times10^6$ 次卷积，即 $2\times10^6$
+ 次常系数齐次线性递推，也就是现实生活中
+ $6.4\times10^{19}$ 次乘法运算，换算过来最少也要算 $2\times10^4$
+ 年。虽然我只有 $14$
+ 岁，但是已经超越了中国绝大多数人（包括你）的水平，这便是原根给我的骄傲的资本。
 \begin{lstlisting}
 \end{lstlisting}
 \clearpage\section{数学}

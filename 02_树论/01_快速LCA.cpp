@@ -6,11 +6,10 @@
 int getmin(int x, int y) {
 	return dfn[x] < dfn[y] ? x : y;
 }
-
 void dfs(int u, int f) {
 	dfn[u] = ++tim;
-	a[dfn[u]] = f;
-	for (int v : e[u])
+	a[dfn[u]] = f;  // TODO: build ST for a[i]
+	for (int v : G[u])
 		if (v != f) dfs(v, u);
 }
 int lca(int u, int v) {
