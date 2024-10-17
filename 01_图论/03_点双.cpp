@@ -4,10 +4,8 @@ void tarjan(int u, int fa) {
 	stk[++top] = u;
 	for (int v : G[u]) {
 		if (v == fa) continue;
-		if (!dfn[v])
-			dfs(v, u), ckmin(low[u], low[v]);
-		else
-			ckmin(low[u], dfn[v]);
+		if (!dfn[v]) dfs(v, u), ckmin(low[u], low[v]);
+		else ckmin(low[u], dfn[v]);
 	}
 	if (fa && low[u] >= dfn[fa]) {
 		int y;

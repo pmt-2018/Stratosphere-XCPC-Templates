@@ -10,13 +10,13 @@ void init() {
 		if (!vis[i])
 			prime[++totp] = i, mnpe[i] = i;  // mu[i] = -1, phi[i] = i - 1;
 		for (int j = 1; j <= totp && i * prime[j] <= N; j++) {
+			vis[i * prime[j]] = 1;
 			if (i % prime[j] == 0) {
 				mnpe[i * prime[j]] = mnpe[i] * prime[j];
 				// mu[i * prime[j]] = 0;
 				// phi[i * prime[j]] = phi[i] * prime[j];
 				break;
 			}
-			vis[i * prime[j]] = 1;
 			mnpe[i * prime[j]] = prime[j];
 			// mu[i * prime[j]] = -mu[i];
 			// phi[i * prime[j]] = phi[i] * (prime[j] - 1);

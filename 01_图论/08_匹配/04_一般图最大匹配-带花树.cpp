@@ -2,22 +2,16 @@ namespace blossom {
 	vector<int> G[maxn];
 	int f[maxn];
 	int n, match[maxn];
-	int getfa(int x) {
-		return f[x] == x ? x : f[x] = getfa(f[x]);
-	}
-	void addedge(int x, int y) {
-		G[x].push_back(y), G[y].push_back(x);
-	}
+	int getfa(int x) { return f[x] == x ? x : f[x] = getfa(f[x]); }
+	void addedge(int x, int y) { G[x].push_back(y), G[y].push_back(x); }
 	int pre[maxn], mk[maxn];
 	int vis[maxn], T;
 	queue<int> q;
 	int LCA(int x, int y) {
 		T++;
 		for (;; x = pre[match[x]], swap(x, y))
-			if (vis[x = getfa(x)] == T)
-				return x;
-			else
-				vis[x] = x ? T : 0;
+			if (vis[x = getfa(x)] == T) return x;
+			else vis[x] = x ? T : 0;
 	}
 	void flower(int x, int y, int z) {
 		while (getfa(x) != z) {
@@ -39,8 +33,7 @@ namespace blossom {
 			for (int v : G[x]) {
 				int y = v, z;
 				if (mk[y] == 2) continue;
-				if (mk[y] == 1)
-					z = LCA(x, y), flower(x, y, z), flower(y, x, z);
+				if (mk[y] == 1) z = LCA(x, y), flower(x, y, z), flower(y, x, z);
 				else if (!match[y]) {
 					for (pre[y] = x; y;)
 						x = pre[y], match[y] = x, swap(y, match[x]);

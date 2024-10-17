@@ -107,7 +107,7 @@ namespace Euler {
 		n = m = 0;
 	}
 	void addedge(int x, int y) {
-		chkmax(n, x), chkmax(n, y);
+		ckmax(n, x), ckmax(n, y);
 		e[++m] = {x, y};
 		if (directed) {
 			G[x].push_back({y, m});
@@ -131,11 +131,11 @@ namespace Euler {
 		reverse(ans.begin(), ans.end());
 		vi ver, edge = ans;
 		if (directed) {
-			ver = {e[ans[0]].fir};
-			for (auto t : ans) ver.push_back(e[t].sec);
+			ver = {e[ans[0]].fi};
+			for (auto t : ans) ver.push_back(e[t].se);
 		} else {
-			ver = {ans[0] > 0 ? e[ans[0]].fir : e[-ans[0]].sec};
-			for (auto t : ans) ver.push_back(t > 0 ? e[t].sec : e[-t].fir);
+			ver = {ans[0] > 0 ? e[ans[0]].fi : e[-ans[0]].se};
+			for (auto t : ans) ver.push_back(t > 0 ? e[t].se : e[-t].fi);
 		}
 		clr();
 		return {ver, edge};
@@ -148,10 +148,8 @@ void tarjan(int u) {
 	in[u] = 1;
 	st[++top] = u;
 	for (int v : G[u]) {
-		if (!dfn[v])
-			tarjan(v), ckmin(low[u], low[v]);
-		else if (in[v])
-			ckmin(low[u], dfn[v]);
+		if (!dfn[v]) tarjan(v), ckmin(low[u], low[v]);
+		else if (in[v]) ckmin(low[u], dfn[v]);
 	}
 	if (dfn[u] == low[u]) {
 		++totc;
@@ -167,10 +165,8 @@ void tarjan(int u, int fa) {
 	stk[++top] = u;
 	for (int v : G[u]) {
 		if (v == fa) continue;
-		if (!dfn[v])
-			dfs(v, u), ckmin(low[u], low[v]);
-		else
-			ckmin(low[u], dfn[v]);
+		if (!dfn[v]) dfs(v, u), ckmin(low[u], low[v]);
+		else ckmin(low[u], dfn[v]);
 	}
 	if (fa && low[u] >= dfn[fa]) {
 		int y;
@@ -189,10 +185,8 @@ void tarjan(int u, int f) {
 	st[++top] = u;
 	for (int v : G[u]) {
 		if (v == f) continue;
-		if (!dfn[v])
-			tarjan(v, u), ckmin(low[u], low[v]);
-		else
-			ckmin(low[u], dfn[v]);
+		if (!dfn[v]) tarjan(v, u), ckmin(low[u], low[v]);
+		else ckmin(low[u], dfn[v]);
 	}
 	if (dfn[u] == low[u]) {
 		++totc;
@@ -490,32 +484,48 @@ int work() {
 \subsubsection{二分图最大匹配-HK}
 \begin{lstlisting}
 // HK, 左到右单向边, O(M \sqrt{|match|})
-int matchl[maxn], matchr[maxn], a[maxn], p[maxn];
-int HK() {
-	while (true) {
-		for (int i = 1; i <= nl; i++) a[i] = p[i] = 0;
-		queue<int> Q;
-		while (!Q.empty()) Q.pop();
-		for (int i = 1; i <= nl; i++)
-			if (!matchl[i]) a[i] = p[i] = i, Q.push(i);
-		int succ = 0;
-		while (!Q.empty()) {
-			int u = Q.front();
-			Q.pop();
-			if (matchl[a[u]]) continue;
-			for (int v : G[u]) {
-				if (!matchr[v]) {
-					for (succ = 1; v; u = p[u])
-						matchr[v] = u, swap(matchl[u], v);
-					break;
-				}
-				if (!p[matchr[v]])
-					Q.push(matchr[v]), p[matchr[v]] = u, a[matchr[v]] = a[u];
-			}
+int nl, nr, m;
+vi G[maxn];
+int L[maxn], R[maxn], vis[maxn], matchl[maxn], matchr[maxn];
+queue<int> Q;
+bool bfs() {
+	for (int i = 1; i <= nl; i++) L[i] = 0;
+	for (int i = 1; i <= nr; i++) R[i] = 0;
+
+	for (int i = 1; i <= nl; i++)
+		if (!matchl[i]) L[i] = 1, Q.push(i);
+	int succ = 0;
+	while (!Q.empty()) {
+		int u = Q.front();
+		Q.pop();
+		for (int v : G[u]) {
+			if (R[v]) continue;
+			R[v] = L[u] + 1;
+			if (matchr[v]) {
+				L[matchr[v]] = R[v] + 1, Q.push(matchr[v]);
+			} else succ = 1;
 		}
-		if (!succ) break;
 	}
-}\end{lstlisting}
+	return succ;
+}
+bool dfs(int u) {
+	for (int v : G[u])
+		if (R[v] == L[u] + 1 && !vis[v]) {
+			vis[v] = 1;
+			if (!matchr[v] || dfs(matchr[v]))
+				return matchl[u] = v, matchr[v] = u, 1;
+		}
+	return 0;
+}
+void HK() {
+	while (bfs()) {
+		for (int i = 1; i <= nr; i++) vis[i] = 0;
+		for (int i = 1; i <= nl; ++i)
+			if (!matchl[i]) dfs(i);
+	}
+	return;
+}
+\end{lstlisting}
 \subsubsection{二分图最大权匹配-KM}
 \begin{lstlisting}
 // KM 二分图最大权匹配 复杂度O(n^3)
@@ -523,9 +533,7 @@ namespace KM {
 	int nl, nr;
 	ll e[maxn][maxn], lw[maxn], rw[maxn], mnw[maxn];
 	int lpr[maxn], rpr[maxn], vis[maxn], fa[maxn];
-	void addedge(int x, int y, ll w) {
-		ckmax(e[x][y], w), ckmax(lw[x], w);
-	}
+	void addedge(int x, int y, ll w) { ckmax(e[x][y], w), ckmax(lw[x], w); }
 	void work(int x) {
 		int xx = x;
 		for (int i = 1; i <= nr; i++) vis[i] = 0, mnw[i] = 1e18;
@@ -539,12 +547,9 @@ namespace KM {
 				if (!vis[i] && mn >= mnw[i]) ckmin(mn, mnw[i]), y = i;
 			lw[xx] -= mn;
 			for (int i = 1; i <= nr; i++)
-				if (vis[i])
-					rw[i] += mn, lw[rpr[i]] -= mn;
-				else
-					mnw[i] -= mn;
-			if (rpr[y])
-				x = rpr[y], vis[y] = 1;
+				if (vis[i]) rw[i] += mn, lw[rpr[i]] -= mn;
+				else mnw[i] -= mn;
+			if (rpr[y]) x = rpr[y], vis[y] = 1;
 			else {
 				while (y) rpr[y] = fa[y], swap(y, lpr[fa[y]]);
 				return;
@@ -571,22 +576,16 @@ namespace blossom {
 	vector<int> G[maxn];
 	int f[maxn];
 	int n, match[maxn];
-	int getfa(int x) {
-		return f[x] == x ? x : f[x] = getfa(f[x]);
-	}
-	void addedge(int x, int y) {
-		G[x].push_back(y), G[y].push_back(x);
-	}
+	int getfa(int x) { return f[x] == x ? x : f[x] = getfa(f[x]); }
+	void addedge(int x, int y) { G[x].push_back(y), G[y].push_back(x); }
 	int pre[maxn], mk[maxn];
 	int vis[maxn], T;
 	queue<int> q;
 	int LCA(int x, int y) {
 		T++;
 		for (;; x = pre[match[x]], swap(x, y))
-			if (vis[x = getfa(x)] == T)
-				return x;
-			else
-				vis[x] = x ? T : 0;
+			if (vis[x = getfa(x)] == T) return x;
+			else vis[x] = x ? T : 0;
 	}
 	void flower(int x, int y, int z) {
 		while (getfa(x) != z) {
@@ -608,8 +607,7 @@ namespace blossom {
 			for (int v : G[x]) {
 				int y = v, z;
 				if (mk[y] == 2) continue;
-				if (mk[y] == 1)
-					z = LCA(x, y), flower(x, y, z), flower(y, x, z);
+				if (mk[y] == 1) z = LCA(x, y), flower(x, y, z), flower(y, x, z);
 				else if (!match[y]) {
 					for (pre[y] = x; y;)
 						x = pre[y], match[y] = x, swap(y, match[x]);
@@ -739,10 +737,8 @@ namespace Dom_DAG {
 			for (int v : G[x]) {
 				--deg[v];
 				if (!deg[v]) q.push(v);
-				if (!idom[v])
-					idom[v] = x;
-				else
-					idom[v] = lca(idom[v], x);
+				if (!idom[v]) idom[v] = x;
+				else idom[v] = lca(idom[v], x);
 			}
 		}
 	}
@@ -778,10 +774,8 @@ namespace Dom {
 			if (w > cnt) continue;
 			for (int v : rG[x]) {
 				if (!dfn[v]) continue;
-				if (dfn[v] < dfn[x])
-					ckmin(cur, dfn[v]);
-				else
-					find(v), ckmin(cur, mn[v]);
+				if (dfn[v] < dfn[x]) ckmin(cur, dfn[v]);
+				else find(v), ckmin(cur, mn[v]);
 			}
 			semi[x] = id[cur];
 			mn[x] = cur;
@@ -790,9 +784,7 @@ namespace Dom {
 			Dom_DAG::deg[x]++;
 		}
 	}
-	void addedge(int x, int y) {
-		G[x].push_back(y), rG[y].push_back(x);
-	}
+	void addedge(int x, int y) { G[x].push_back(y), rG[y].push_back(x); }
 }  // namespace Dom\end{lstlisting}
 \subsection{图论计数}
 \subsubsection{Prufer序列}
@@ -877,9 +869,7 @@ $t^\mathrm{root}(k)$为以$k$为根的外向树个数。\clearpage\section{树�
 可以简化为在 ST 表的最底层记录父亲，比较时取时间戳较小的结点。\\
 取决于st表实现可以做到$O(n)$ or $O(n\log n)$预处理 $O(1)$查询
 \begin{lstlisting}
-int getmin(int x, int y) {
-	return dfn[x] < dfn[y] ? x : y;
-}
+int getmin(int x, int y) { return dfn[x] < dfn[y] ? x : y; }
 void dfs(int u, int f) {
 	dfn[u] = ++tim;
 	a[dfn[u]] = f;  // TODO: build ST for a[i]
@@ -1028,9 +1018,7 @@ void update(int u) {
 		if (u) {}  // TODO: 用 aft 更新 trans[u] 和 dp[u]
 	}
 }
-Vector query() {
-	return T.query(1, 1, n, id[1], endc[1]) * dp[id[endc[1]]];
-}\end{lstlisting}
+Vector query() { return T.query(1, 1, n, id[1], endc[1]) * dp[id[endc[1]]]; }\end{lstlisting}
 \subsection{树上背包}
 \begin{lstlisting}
 // 背包大小上界为 m，复杂度为 O(nm)
@@ -1045,6 +1033,30 @@ void solve(int u) {
 		sz[u] += sz[v];  // DON'T MOVE THIS!!!
 		for (int i = 0; i <= m; i++) dp[u][i] = tmp[i];
 	}
+}\end{lstlisting}
+\subsection{树哈希}
+\begin{lstlisting}
+mt19937_64 rnd(time(nullptr));
+const ull mask = rnd();
+const ull base = rnd();
+ull xorshift(ull x) {
+	x ^= mask;
+	x ^= x << 13;
+	x ^= x >> 7;
+	x ^= x << 17;
+	x ^= mask;
+	return x;
+}
+ull hsh[maxn], sz[maxn];
+void dfs(int u, int f) {
+	hsh[u] = base, sz[u] = 1;
+	for (int v : G[u]) {
+		if (v == f) continue;
+		dfs(v, u);
+		hsh[u] += xorshift(hsh[v]);
+		sz[u] += sz[v];
+	}
+	hsh[u] += xorshift(sz[u]);
 }\end{lstlisting}
 \clearpage\section{数论}
 \subsection{数论分块}
@@ -1067,13 +1079,13 @@ void init() {
 		if (!vis[i])
 			prime[++totp] = i, mnpe[i] = i;  // mu[i] = -1, phi[i] = i - 1;
 		for (int j = 1; j <= totp && i * prime[j] <= N; j++) {
+			vis[i * prime[j]] = 1;
 			if (i % prime[j] == 0) {
 				mnpe[i * prime[j]] = mnpe[i] * prime[j];
 				// mu[i * prime[j]] = 0;
 				// phi[i * prime[j]] = phi[i] * prime[j];
 				break;
 			}
-			vis[i * prime[j]] = 1;
 			mnpe[i * prime[j]] = prime[j];
 			// mu[i * prime[j]] = -mu[i];
 			// phi[i * prime[j]] = phi[i] * (prime[j] - 1);
@@ -1088,30 +1100,126 @@ void init() {
 }\end{lstlisting}
 \subsection{筛子}
 \subsubsection{杜教筛}
-\begin{lstlisting}
+若想要求出$f$在$n$处的前缀和$s(n) = \sum\limits_{i=1}^n f(i)$，构造积性函数$g$，设$h =  f \ast g$，则
+$$
+\begin{aligned}
+& \sum\limits_{i = 1} ^ n h(i) \\
+= \ & \sum\limits_{ij \leq n} f(i) g(j) \\
+= \ & \sum\limits_{d = 1} ^ n g(d) \sum\limits_{i = 1} ^ {\frac n d} f(i) \\ 
+= \ & \sum\limits_{d = 1} ^ n g(d) s\left(\left\lfloor\frac n d\right\rfloor\right)
+\end{aligned}
+$$
 
+若$g,h$的前缀和可以快速求出，则
+
+$$
+s(n) = \sum\limits_{i = 1} ^ n h(i) - \sum\limits_{d = 2} ^ n g(d)s\left(\left\lfloor\frac n d\right\rfloor\right)
+$$
+
+预处理$f$的前缀和到$n^{2/3}$处即可做到单次查询$O(n^{2/3})$。
+
+\begin{lstlisting}
+ll sum_f(ll x) {
+	if (x <= N) return sf[x];
+	if (Sf[n / x]) return Sf[n / x];
+	ll ans = Sum_h(x);
+	for (ll l = 2, r; l <= x; l = r + 1) {
+		r = x / (x / l);
+		sub(ans, sum_g(l, r) * sum_f(x / l));
+	}
+	return Sf[n / x] = ans;
+}
 \end{lstlisting}
 \subsubsection{min-25筛(质数个数)}
 \begin{lstlisting}
-
-\end{lstlisting}
+const int N = 1e6;
+double inv[maxn];
+void sieve() {
+	// 见线性筛部分
+	for (int i = 1; i <= N; ++i) inv[i] = 1.0 / i;
+}
+ll val[maxn], pos[maxn], id1[maxn], id2[maxn], cnt;
+ll solve(ll n) {
+	ll T = sqrt(n) + 3;
+	for (ll i = 1, pi; i <= n; i = pi + 1) {
+		pos[++cnt] = n / i;
+		pi = n / pos[cnt];
+		val[cnt] = pos[cnt] - 1;
+		(n / i <= T ? id1[n / i] : id2[pi]) = cnt;
+	}
+	auto getid = [&](ll x) -> int { return x <= T ? id1[x] : id2[n / x]; };
+	for (int i = 1; 1ll * prime[i] * prime[i] <= n; i++) {
+		int p = id1[prime[i - 1]];
+		for (int j = 1; pos[j] >= 1ll * prime[i] * prime[i]; j++) {
+			int q = getid(1.0 * pos[j] * inv[prime[i]] + 1e-7);
+			val[j] -= val[q] - val[p];
+		}
+	}
+	return val[1];
+}\end{lstlisting}
 \subsubsection{min-25筛}
+未验证，待补充
 \begin{lstlisting}
-
-\end{lstlisting}
+void init_g() {
+	for (ll l = 1, r; l <= n; l = r + 1) {
+		r = n / (n / l);
+		w[++tot] = n / l;
+		g ^ k[tot] = sum(1..w [tot] ^ k);
+		if (n / l <= N) ind1[n / l] = tot;
+		else ind2[l] = tot;
+	}
+}
+void calc_g() {
+	for (int i = 1; i <= totp; i++) {
+		for (int j = 1; j <= tot && prime[i] * prime[i] <= w[j]; j++) {
+			ll k = w[j] / prime[i] <= N ? ind1[w[j] / prime[i]]
+			                            : ind2[n / (w[j] / prime[i])];
+			sub(g ^ e[j], prime[i] ^ e * (g ^ e[k] - sp ^ e[i - 1]));
+		}
+	}
+}
+ll S(ll x, int y) {
+	cnt++;
+	if (prime[y] >= x) return 0;
+	ll k = x <= N ? ind1[x] : ind2[n / x];
+	ll ans = f(g ^ e(x)) - f(sp ^ e[y]);
+	for (int i = y + 1; i <= totp && prime[i] * prime[i] <= x; i++) {
+		ll p = prime[i];
+		for (int e = 1; p <= x; e++, p *= prime[i]) {
+			add(ans, f(p) * (S(x / p, i) + (e != 1)));
+		}
+	}
+	return ans % MOD;
+}\end{lstlisting}
 \subsubsection{PowerfulNumber筛}
+未验证，待补充。
+\par 求$\sum_{i=1}^n f(i)$，找到$g(i)$满足$\forall p\in
+\mathbf{P},f(p)=g(p)$，g可杜教筛。 \par 不妨假设 $g\ast h =
+f$，那么$h$仅在PN处有值，于是
+$$\begin{aligned} \sum_{i=1}^{n} f(i)&=\sum_{ij} g(i)h(j) \\ &= \sum_{i\le n}
+h(i) \sum_{j=1}^{n/i} g(j)\end{aligned}$$ \par 计算$h$依靠递推：
+$$\begin{aligned}
+f(p^k)&=\sum_{i+j=k}g(p^i)h(p^j)\\ h(p^k)&=f(p^k)-\sum_{i=0}^{k-1}h(p^i)g(p^{k-i})\end{aligned}$$
 \begin{lstlisting}
 
-\end{lstlisting}
+void power_num(int k, ll m, int h) {
+	if (k > totp || m * prime[k] > n) {
+		if (n / m <= N) add(ans, 1ll * h * sxphi[n / m] % MOD);
+		else add(ans, 1ll * h * Sxphi[n / (n / m)] % MOD);
+		return;
+	}
+	power_num(k + 1, m, h);
+	ll p = 1ll * prime[k] * prime[k];
+	for (int e = 2; m * p <= n; p *= prime[k], e++) {
+		power_num(k + 1, m * p,
+		          p % MOD * (prime[k] - 1) % MOD * (e - 1) % MOD * h % MOD);
+	}
+}\end{lstlisting}
 \subsubsection{洲阁筛}
-\begin{lstlisting}
-
-\end{lstlisting}
-\subsection{扩展欧几里得}
+我不会，长大后再学习。\subsection{扩展欧几里得}
 \begin{lstlisting}
 ll exgcd(ll a, ll b, ll& x, ll& y) {
-	if (!b)
-		return x = 1, y = 0, a;
+	if (!b) return x = 1, y = 0, a;
 	else {
 		ll rt = exgcd(b, a % b, y, x);
 		y -= (a / b) * x;
@@ -1165,34 +1273,545 @@ ll exCRT(vector<int> a, vector<int> m) {
 \end{lstlisting}
 \subsection{BSGS}
 \begin{lstlisting}
-
-\end{lstlisting}
+gp_hash_table<ll, ll> s;
+ll exgcd(ll a, ll b) {
+	if (a == 1) return 1;
+	return (1 - b * exgcd(b % a, a)) / a;  // not ll
+}
+ll exBSGS(ll a, ll b, ll p) {
+	s.clear();
+	a %= p, b %= p;
+	ll j = 1 % p, cnt = 0;
+	for (int i = 0; i <= __lg(p); i++, j = j * a % p)
+		if (j == b) return i;
+	ll x, y = 1;
+	while (true) {
+		x = gcd(a, p);
+		if (x == 1) break;
+		if (b % x) return -1;  // no sol
+		cnt++;
+		p /= x, b /= x;
+		y = y * (a / x) % p;
+	}
+	a %= p;
+	b = (ll)b * (p + exgcd(y, p)) % p;
+	x = ceil(sqrt(p)), j = 1;
+	for (int i = 0; i < x; i++, j = j * a % p) {
+		if (j == b) return i + cnt;
+		s[j * b % p] = i + 1;
+	}
+	int k = j;
+	for (int i = 1; i <= x; i++, j = (ll)j * k % p)
+		if (s[j]) return (ll)i * x + cnt - s[j] + 1;
+	return -1;
+}\end{lstlisting}
 \subsection{Millar-Robin}
+Pollard-Rho 的 $2\sim 30$ 行即为 Millar-Robin\subsection{Pollard-Rho}
 \begin{lstlisting}
-
-\end{lstlisting}
-\subsection{Pollard-Rho}
-\begin{lstlisting}
-
-\end{lstlisting}
+namespace factor {
+	using f64 = long double;
+	ll p;
+	f64 invp;
+	inline void setmod(ll x) { p = x, invp = (f64)1 / x; }
+	inline ll mul(ll a, ll b) {
+		ll z = a * invp * b + 0.5;
+		ll res = a * b - z * p;
+		return res + (res >> 63 & p);
+	}
+	inline ll pow(ll a, ll x, ll res = 1) {
+		for (; x; x >>= 1, a = mul(a, a))
+			if (x & 1) res = mul(res, a);
+		return res;
+	}
+	inline bool checkprime(ll p) {
+		if (p == 1) return 0;
+		setmod(p);
+		ll d = __builtin_ctzll(p - 1), s = (p - 1) >> d;
+		for (ll a : {2, 3, 5, 7, 11, 13, 82, 373}) {
+			if (a % p == 0) continue;
+			ll x = pow(a, s), y;
+			for (int i = 0; i < d; ++i, x = y) {
+				y = mul(x, x);
+				if (y == 1 && x != 1 && x != p - 1) return 0;
+			}
+			if (x != 1) return 0;
+		}
+		return 1;
+	}
+	inline ll rho(ll n) {
+		if (!(n & 1)) return 2;
+		static std::mt19937_64 gen((size_t) "hehezhou");
+		ll c = gen() % (n - 1) + 1, y = gen() % (n - 1) + 1;
+		auto f = [&](ll o) {
+			o = mul(o, o) + c;
+			return o >= n ? o - n : o;
+		};
+		setmod(p);
+		for (int l = 1;; l <<= 1) {
+			ll x = y, g = 1;
+			for (int i = 0; i < l; ++i) y = f(y);
+			const int d = 512;
+			for (int i = 0; i < l; i += d) {
+				ll sy = y;
+				for (int j = 0; j < min(d, l - i); ++j) {
+					y = f(y), g = mul(g, (y - x + n));
+				}
+				g = gcd(n, g);
+				if (g == 1) continue;
+				if (g == n)
+					for (g = 1, y = sy; g == 1;)
+						y = f(y), g = gcd(n, y - x + n);
+				return g;
+			}
+		}
+	}
+	inline std::vector<ll> factor(ll x) {
+		std::queue<ll> q;
+		q.push(x);
+		std::vector<ll> res;
+		for (; q.size();) {
+			ll x = q.front();
+			q.pop();
+			if (x == 1) continue;
+			if (checkprime(x)) {
+				res.push_back(x);
+				continue;
+			}
+			ll y = rho(x);
+			q.push(y), q.push(x / y);
+		}
+		sort(res.begin(), res.end());
+		return res;
+	}
+}  // namespace factor\end{lstlisting}
 \subsection{原根}
- 你说的对，但是感觉不如原根。\par 原根，是一个数学符号。设 $m$ 是正整数，$a$
- 是整数，若 $a$ 模 $m$ 的阶等于 $\varphi(m)$，则称 $a$ 为模 $m$
- 的一个原根。\par 假设一个数 $g$ 是 $p\in\textbf P$ 的原根，那么 $\forall
- 0<i<p,g^i \bmod p$ 的结果两两不同，归根到底就是 $g^a \equiv 1 \pmod p$
- 当且仅当指数 $a$ 为 $p-1$ 的倍数时成立。\par
- 你的数学很差，我现在每天用原根都能做 $10^5$ 次数据规模 $10^6$ 的
- NTT，每个月差不多 $3\times10^6$ 次卷积，即 $2\times10^6$
- 次常系数齐次线性递推，也就是现实生活中
- $6.4\times10^{19}$ 次乘法运算，换算过来最少也要算 $2\times10^4$
- 年。虽然我只有 $14$
- 岁，但是已经超越了中国绝大多数人（包括你）的水平，这便是原根给我的骄傲的资本。
+你说的对，但是感觉不如原根。
+\par 原根，是一个数学符号。
+设 $m$ 是正整数，$a$是整数，若 $a$ 模 $m$ 的阶等于 $\varphi(m)$
+（定义 $a$ 模 $m$ 的阶 $\delta_m(a)$ 为最小的$x$ 满足 $a^x\equiv 1 \pmod m$），则称 $a$ 为模 $m$ 的一个原根。
+\par 假设一个数 $g$ 是 $p\in\textbf P$ 的原根，那么$\forall 0<i<p,g^i \bmod p$ 的结果两两不同，
+归根到底就是 $g^a \equiv 1 \pmod p$ 当且仅当指数 $a$ 为 $p-1$ 的倍数时成立。
+\par 你的数学很差，我现在每天用原根都能做 $10^5$ 次数据规模 $10^6$ 的NTT，
+每个月差不多 $3\times10^6$ 次卷积，即 $2\times10^6$次常系数齐次线性递推，
+也就是现实生活中$6.4\times10^{19}$ 次乘法运算，换算过来最少也要算 $2\times10^4$年。
+虽然我只有 $14$岁，但是已经超越了中国绝大多数人（包括你）的水平，这便是原根给我的骄傲的资本。
+
+
+
+性质：
+
+\begin{itemize}
+    \item 最小原根大小数量级在$O(m^{1/4})$左右，求最小原根直接枚举$g$并检验 对于 $\varphi(m)$ 的每个素因数 $p$，都有 $g^{\frac{\varphi(m)}{p}}\not\equiv 1\pmod m$ 即可。
+    \item 
+    $$
+    \delta_m(a^k)=\dfrac{\delta_m(a)}{\left(\delta_m(a),k\right)}
+    $$
+    通常这里的$a$是$g$。
+    \item 将模$m$剩余系看成一个$\times g$的循环群。
+\end{itemize}\subsection{二次剩余魔法}
+待补充
+\subsection{类欧几里得和万能欧几里得}
+未验证，待补充
+板子为直线下点数：
+$$ans = \sum_{i=1}^{n-1}\lfloor\frac{ai+b}{m}\rfloor $$
 \begin{lstlisting}
-\end{lstlisting}
-\clearpage\section{数学}
-Delete This
+ull floor_sum(ull n, ull m, ull a, ull b) {
+	ull ans = 0;
+	while (true) {
+		if (a >= m) ans += n * (n - 1) / 2 * (a / m), a %= m;
+		if (b >= m) ans += n * (b / m), b %= m;
+		ull ymax = a * n + b;  // use u128 if it's big
+		if (ymax < m) break;
+		n = ymax / m;
+		b = ymax % m;
+		std::swap(m, a);
+	}
+	return ans;
+}\end{lstlisting}
+\subsection{Lucas和扩展Lucas}
+$$ \dbinom{n}{m}\equiv\dbinom{n_1}{m_1}\dbinom{n_2}{m_2}\dbinom{n_3}{m_3}\cdots \pmod p$$
+
+推论：$\dbinom{n}{m}\not\equiv 0 \pmod p​$ 当且仅当$m$和$n-m$在$p$进制相加没有进位。例如$p=2$时只有$n\land m=m$时$\dbinom{n}{m}\equiv1(mod\ 2)$。
+
+扩展Lucas待补充。\clearpage\section{数学}
+\subsection{矩阵}
+\subsection{多项式合集}
+务必记得\texttt{Init(n)}在进行多项式乘法前！！！
 \begin{lstlisting}
+const int MOD = 998244353;
+const int N = 20;
+const int G = 3;
+const int MAXN = 3e5 + 5;
+typedef vector<int> poly;
+void print(const poly& a) {
+	for (int i = 0; i < (int)a.size(); i++)
+		cout << (i == 0 ? " " : "+ ") << a[i] << "*x^" << i << ' ';
+	cout << endl;
+}
+namespace Poly {
+	const int mod = 998244353;
+	int rev[MAXN], w[MAXN], wn[N];
+	void addmod(int& x, int y) {
+		x += y;
+		if (x >= mod) x -= mod;
+	}
+	void submod(int& x, int y) {
+		x -= y;
+		if (x < 0) x += mod;
+	}
+	int add(int x, int y) {
+		addmod(x, y);
+		return x;
+	}
+	int sub(int x, int y) {
+		submod(x, y);
+		return x;
+	}
+	int power(int x, int y) {
+		int res = 1;
+		while (y) {
+			if (y & 1) res = (ll)res * x % mod;
+			x = (ll)x * x % mod;
+			y >>= 1;
+		}
+		return res;
+	}
+	int Inv(int x) { return power(x, mod - 2); }
+	void InitNTT(int n) {
+		wn[n] = power(G, (mod - 1) / (1 << n));
+		for (int i = n - 1; i >= 0; i--)
+			wn[i] = (ll)wn[i + 1] * wn[i + 1] % mod;
+	}
+	int Init(int n) {
+		int len = 1;
+		while (len < n) len <<= 1;
+		for (int i = 0; i < len; i++)
+			rev[i] = (rev[i >> 1] >> 1) | ((i & 1) * (len >> 1));
+		for (int i = 1, t = 1; i < len; i <<= 1, t += 1) {
+			w[i] = 1;
+			for (int j = 1; j < i; j++)
+				w[i + j] = (ll)w[i + j - 1] * wn[t] % mod;
+		}
+		return len;
+	}
+	void NTT(poly& a, int flag) {
+		int n = a.size();
+		for (int i = 0; i < n; i++)
+			if (i < rev[i]) swap(a[i], a[rev[i]]);
+		for (int i = 2; i <= n; i <<= 1) {
+			int mid = (i >> 1);
+			for (int j = 0; j < n; j += i) {
+				for (int k = j; k < j + mid; k++) {
+					int x = a[k], y = (ll)a[k + mid] * w[k - j + mid] % mod;
+					a[k] = add(x, y);
+					a[k + mid] = sub(x, y);
+				}
+			}
+		}
+		if (flag == -1) {
+			reverse(a.begin() + 1, a.begin() + n);
+			int invn = Inv(n);
+			for (int i = 0; i < n; i++) a[i] = (ll)a[i] * invn % mod;
+		}
+	}
+	poly PolyAdd(const poly& A, const poly& B) {
+		poly res = A;
+		for (int i = 0; i < (int)A.size(); i++) addmod(res[i], B[i]);
+		return res;
+	}
+	poly PolyMul(const poly& A, const poly& B, int need = 0) {
+		int n = A.size(), m = B.size();
+		if (n < 5 || m < 5) {
+			poly a;
+			a.resize(n + m - 1);
+			for (int i = 0; i < n; i++)
+				for (int j = 0; j < m; j++)
+					addmod(a[i + j], (ll)A[i] * B[j] % mod);
+			if (need) a.resize(need);
+			return a;
+		}
+		int len = Init(n + m);
+		poly a = A, b = B;
+		a.resize(len), b.resize(len);
+		NTT(a, 1);
+		NTT(b, 1);
+		for (int i = 0; i < len; i++) a[i] = (ll)a[i] * b[i] % mod;
+		NTT(a, -1);
+		a.resize(need ? need : n + m - 1);
+		return a;
+	}
+	poly PolyInv(const poly& A) {
+		int n = A.size();
+		if (n == 1) { return {Inv(A[0])}; }
+		poly a = A, b = PolyInv(poly(A.begin(), A.begin() + ((n + 1) >> 1)));
+		int len = Init(n << 1);
+		a.resize(len), b.resize(len);
+		NTT(a, 1);
+		NTT(b, 1);
+		for (int i = 0; i < len; i++)
+			b[i] = (ll)sub(2, (ll)a[i] * b[i] % mod) * b[i] % mod;
+		NTT(b, -1);
+		b.resize(n);
+		return b;
+	}
+	poly PolyDeriv(const poly& A) {
+		int n = A.size();
+		poly a = A;
+		for (int i = 1; i < n; i++) a[i - 1] = (ll)i * A[i] % mod;
+		a[n - 1] = 0;
+		return a;
+	}
+	poly PolyInter(const poly& A) {
+		int n = A.size();
+		poly a = A;
+		for (int i = 1; i < n; i++)
+			a[i] = (ll)A[i - 1] * power(i, mod - 2) % mod;
+		a[0] = 0;
+		return a;
+	}
+	pair<poly, poly> PolyMod(const poly& A, const poly& B) {
+		int n = A.size(), m = B.size();
+		if (n < m) return make_pair(poly(1), A);
+		poly a = A, b = B;
+		reverse(a.begin(), a.end());
+		reverse(b.begin(), b.end());
+		b.resize(n - m + 1);
+		b = PolyInv(b);
+		a.resize(n - m + 1);
+		a = PolyMul(a, b, n - m + 1);
+		reverse(a.begin(), a.end());
+		b = PolyMul(a, B, m - 1);
+		for (int i = 0; i < m - 1; i++) b[i] = sub(A[i], b[i]);
+		return make_pair(a, b);
+	}
+	poly PolyLn(const poly& A) {
+		int n = A.size();
+		poly a = A;
+		for (int i = 1; i < n; i++) a[i - 1] = (ll)i * A[i] % mod;
+		a[n - 1] = 0;
+		a = PolyMul(a, PolyInv(A), n);
+		for (int i = n - 1; i >= 1; i--)
+			a[i] = (ll)a[i - 1] * power(i, mod - 2) % mod;
+		a[0] = 0;
+		return a;
+	}
+	poly PolyExp(const poly& A) {
+		int n = A.size();
+		if (n == 1) return {1};
+		poly b = PolyExp(poly(A.begin(), A.begin() + ((n + 1) >> 1)));
+		b.resize(n);
+		poly c = PolyLn(b);
+		for (int i = 0; i < n; i++) c[i] = sub(A[i], c[i]);
+		addmod(c[0], 1);
+		poly d = PolyMul(b, c, n);
+		return d;
+	}
+	poly PolyPow(const poly& A, int k) {
+		int n = A.size();
+		poly a;
+		a.resize(n);
+		if (!k) {
+			a[0] = 1;
+			return a;
+		}
+		int p = 0;
+		while (p < n && !A[p]) p += 1;
+		if ((ll)p * k >= n) return a;
+		int m = n - p * k;
+		a.resize(m);
+		int coef = power(A[p], k), icoef = power(A[p], mod - 2);
+		for (int i = 0; i < m; i++) a[i] = (ll)A[i + p] * icoef % mod;
+		a = PolyLn(a);
+		for (int i = 0; i < m; i++) a[i] = (ll)a[i] * k % mod;
+		a = PolyExp(a);
+		poly b;
+		b.resize(n);
+		for (int i = 0; i < m; i++) b[i + p * k] = (ll)a[i] * coef % mod;
+		return b;
+	}
+	poly tmp[MAXN];
+#define lson k << 1
+#define rson k << 1 | 1
+	void pre_eval(const poly& A, int k, int l, int r) {
+		if (l == r) {
+			tmp[k].resize(2);
+			tmp[k][0] = sub(0, A[l]);
+			tmp[k][1] = 1;
+			return;
+		}
+		int mid = (l + r) >> 1;
+		pre_eval(A, lson, l, mid);
+		pre_eval(A, rson, mid + 1, r);
+		tmp[k] = PolyMul(tmp[lson], tmp[rson]);
+	}
+	void solve_eval(const poly& A, const poly& B, poly& C, int k, int l,
+	                int r) {
+		if (r - l <= 30) {
+			for (int i = l; i <= r; i++)
+				for (int j = A.size() - 1; j >= 0; j--)
+					C[i] = (A[j] + (ll)C[i] * B[i] % mod) % mod;
+			return;
+		}
+		int mid = (l + r) >> 1;
+		solve_eval(PolyMod(A, tmp[lson]).second, B, C, lson, l, mid);
+		solve_eval(PolyMod(A, tmp[rson]).second, B, C, rson, mid + 1, r);
+	}
+	poly PolyEval(const poly& A, const poly& B) {
+		int m = B.size();
+		pre_eval(B, 1, 0, m - 1);
+		poly c;
+		c.resize(m);
+		solve_eval(PolyMod(A, tmp[1]).second, B, c, 1, 0, m - 1);
+		return c;
+	}
+	poly solve_itpl(const poly& A, int k, int l, int r) {
+		if (l == r) return {A[l]};
+		int mid = (l + r) >> 1;
+		return PolyAdd(PolyMul(solve_itpl(A, lson, l, mid), tmp[rson]),
+		               PolyMul(solve_itpl(A, rs on, mid + 1, r), tmp[lson]));
+	}
+	poly PolyItpl(const poly& A, const poly& B) {
+		int n = A.size();
+		pre_eval(A, 1, 0, n - 1);
+		poly a;
+		a.resize(n);
+		solve_eval(PolyDeriv(tmp[1]), A, a, 1, 0, n - 1);
+		for (int i = 0; i < n; i++) a[i] = (ll)B[i] * Inv(a[i]) % MOD;
+		return solve_itpl(a, 1, 0, n - 1);
+	}
+#undef lson
+#undef rson
+	struct Initializer {
+		Initializer() { InitNTT(N - 1); }
+	} initializer;
+}  // namespace Poly\end{lstlisting}
+\subsection{BM}
+$$\forall i, \sum_{j=0}^m a_{i-j}v_j = 0$$
+\begin{lstlisting}
+vector<int> berlekamp_massey(const vector<int>& a) {
+	vector<int> v, last;  // v is the answer, 0-based
+	int k = -1, delta = 0;
+	for (int i = 0; i < (int)a.size(); i++) {
+		int tmp = 0;
+		for (int j = 0; j < (int)v.size(); j++)
+			tmp = (tmp + (long long)a[i - j - 1] * v[j]) % p;
+		if (a[i] == tmp) continue;
+		if (k < 0) {
+			k = i;
+			delta = (a[i] - tmp + p) % p;
+			v = vector<int>(i + 1);
+			continue;
+		}
+		vector<int> u = v;
+		int val = (long long)(a[i] - tmp + p) * qpow(delta, p - 2) % p;
+		if (v.size() < last.size() + i - k) v.resize(last.size() + i - k);
+		(v[i - k - 1] += val) %= p;
+		for (int j = 0; j < (int)last.size(); j++) {
+			v[i - k + j] = (v[i - k + j] - (long long)val * last[j]) % p;
+			if (v[i - k + j] < 0) v[i - k + j] += p;
+		}
+		if ((int)u.size() - i < (int)last.size() - k) {
+			last = u;
+			k = i;
+			delta = a[i] - tmp;
+			if (delta < 0) delta += p;
+		}
+	}
+	for (auto& x : v) x = (p - x) % p;
+	v.insert(v.begin(), 1);  //一般是需要最小递推式的, 处理一下
+	return v;
+}
 \end{lstlisting}
+\subsection{线性规划单纯形法}
+\begin{lstlisting}
+using db = long double;
+const db eps = 1e-16;
+int sgn(db x) { return x < -eps ? -1 : x > eps; }
+namespace LP {
+	const int N = 21, M = 21;
+	int n, m;  // n : 变量个数,m : 约束个数
+	db a[M + N][N], x[N + M];
+	// 约束:对于 1 <= i <= m : a[i][0] + \sum_j x[j] * a[i][j] >= 0
+	// x[j] >= 0
+	// 最大化 \sum_j x[j] * a[0][j]
+	int id[N + M];
+	void pivot(int p, int o) {
+		std::swap(id[p], id[o + n]);
+		db w = -a[o][p];
+		for (int i = 0; i <= n; ++i) a[o][i] /= w;
+		a[o][p] = -1 / w;
+		for (int i = 0; i <= m; ++i)
+			if (sgn(a[i][p]) && i != o) {
+				db w = a[i][p];
+				a[i][p] = 0;
+				for (int j = 0; j <= n; ++j) a[i][j] += w * a[o][j];
+			}
+	}
+	db solve() {  // nan : 无解,inf : 无界,否则返回最大值
+		for (int i = 1; i <= n + m; ++i) id[i] = i;
+		for (;;) {
+			int p = 0, min = 1;
+			for (int i = 1; i <= m; ++i) {
+				if (a[i][0] < a[min][0]) min = i;
+			}
+			if (a[min][0] >= -eps) break;
+			for (int i = 1; i <= n; ++i)
+				if (a[min][i] > eps && id[i] > id[p]) { p = i; }
+			if (!p) return nan("");
+			pivot(p, min);
+		}
+		for (;;) {
+			int p = 1;
+			for (int i = 1; i <= n; ++i)
+				if (a[0][i] > a[0][p]) p = i;
+			if (a[0][p] < eps) break;
+			db min = INFINITY;
+			int o = 0;
+			for (int i = 1; i <= m; ++i)
+				if (a[i][p] < -eps) {
+					db w = -a[i][0] / a[i][p];
+					int d = sgn(w - min);
+					if (d < 0 || !d && id[i] > id[o]) o = i, min = w;
+				}
+			if (!o) return INFINITY;
+			pivot(p, o);
+		}
+		for (int i = 1; i <= m; ++i) x[id[i + n]] = a[i][0];
+		return a[0][0];
+	}
+}  // namespace LP\end{lstlisting}
+\subsection{FWT}
+$$C_i = \sum_{j\oplus k = i}A_j\times B_k$$。
+$A$, $B$ FWT后对应位相乘在iFWT回去。
+\begin{lstlisting}
+// op = 1 / -1
+inline void FMT_OR(int* a, int n, int op) {
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < (1 << n); j++)
+			if ((1 << i) & j)
+				add(a[j], op == 1 ? a[j ^ (1 << i)] : MOD - a[j ^ (1 << i)]);
+}
+inline void FMT_AND(int* a, int n, int op) {
+	for (int i = 0; i < n; i++)
+		for (int j = (1 << n) - 1; j >= 0; j--)
+			if (!((1 << i) & j))
+				add(a[j], op == 1 ? a[j ^ (1 << i)] : MOD - a[j ^ (1 << i)]);
+}
+const int inv2 = 499122177;
+inline void FWT_XOR(int* a, int n, int op) {
+	for (int i = 1; i < (1 << n); i <<= 1)
+		for (int j = 0; j < (1 << n); j += (i << 1))
+			for (int k = 0; k < i; k++) {
+				int t = a[j + k];
+				a[j + k] = mod1(t + a[i + j + k]);
+				a[i + j + k] = mod1(t + MOD - a[i + j + k]);
+				if (~op) {
+					a[j + k] = 1ll * a[j + k] * inv2 % MOD;
+					a[i + j + k] = 1ll * a[i + j + k] * inv2 % MOD;
+				}
+			}
+}\end{lstlisting}
+\subsection{常见数和公式}
 \clearpage\section{字符串}
 Delete This
 \begin{lstlisting}
@@ -1202,9 +1821,290 @@ Delete This
 \begin{lstlisting}
 \end{lstlisting}
 \clearpage\section{计算几何}
-Delete This
+\subsection{计算几何}
+by yhx-12243，暂未验证
 \begin{lstlisting}
-\end{lstlisting}
+const double eps = 1e-8;
+
+#define lt(x, y) ((x) < (y)-eps)
+#define gt(x, y) ((x) > (y) + eps)
+#define le(x, y) ((x) <= (y) + eps)
+#define ge(x, y) ((x) >= (y)-eps)
+#define eq(x, y) (le(x, y) && ge(x, y))
+#define dot(x, y, z) (((y) - (x)) * ((z) - (x)))
+#define cross(x, y, z) (((y) - (x)) ^ ((z) - (x)))
+struct vec2 {
+	double x, y;
+	vec2(double x0 = 0.0, double y0 = 0.0) : x(x0), y(y0) {}
+	vec2* read() {
+		scanf("%lf%lf", &x, &y);
+		return this;
+	}
+	inline vec2 operator-() const { return vec2(-x, -y); }
+	inline vec2 operator+(const vec2& B) const {
+		return vec2(x + B.x, y + B.y);
+	}
+	inline vec2 operator-(const vec2& B) const {
+		return vec2(x - B.x, y - B.y);
+	}
+	inline vec2 operator*(double k) const { return vec2(x * k, y * k); }
+	inline vec2 operator/(double k) const { return *this * (1.0 / k); }
+	inline double operator*(const vec2& B) const { return x * B.x + y * B.y; }
+	inline double operator^(const vec2& B) const { return x * B.y - y * B.x; }
+	inline double norm2() const { return x * x + y * y; }
+	inline double norm() const { return sqrt(x * x + y * y); }
+	inline bool operator<(const vec2& B) const {
+		return lt(x, B.x) || le(x, B.x) && lt(y, B.y);
+	}
+	inline bool operator==(const vec2& B) const {
+		return eq(x, B.x) && eq(y, B.y);
+	}
+	inline bool operator<<(const vec2& B) const {
+		return lt(y, 0) ^ lt(B.y, 0)
+		           ? lt(B.y, 0)
+		           : gt(*this ^ B, 0)
+		                 || ge(*this ^ B, 0) && ge(x, 0) && lt(B.x, 0);
+	}
+	inline vec2 trans(double a11, double a12, double a21, double a22) const {
+		return vec2(x * a11 + y * a12, x * a21 + y * a22);
+	}
+};
+/*
+operator * : Dot product
+operator ^ : Cross product
+norm2() : |v|^2 = v.v
+norm() : |v| = sqrt(v.v)
+operator < : Two-key compare
+operator << : Polar angle compare
+trans : Transition with a 2x2 matrix
+*/
+struct line {
+	double A, B, C;  // Ax + By + C = 0, > 0 if it represents halfplane.
+	line(double A0 = 0.0, double B0 = 0.0, double C0 = 0.0)
+	    : A(A0), B(B0), C(C0) {}
+	line(const vec2& u, const vec2& v)
+	    : A(u.y - v.y), B(v.x - u.x), C(u ^ v) {}  // left > 0
+	inline vec2 normVec() const { return vec2(A, B); }
+	inline double norm2() const { return A * A + B * B; }
+	inline double operator()(const vec2& P) const {
+		return A * P.x + B * P.y + C;
+	}
+};
+inline vec2 intersection(const line u, const line v) {
+	return vec2(u.B * v.C - u.C * v.B, u.C * v.A - u.A * v.C)
+	       / (u.A * v.B - u.B * v.A);
+}
+inline bool parallel(const line u, const line v) {
+	double p = u.normVec() ^ v.normVec();
+	return eq(p, 0);
+}
+inline bool perpendicular(const line u, const line v) {
+	double p = u.normVec() * v.normVec();
+	return eq(p, 0);
+}
+inline bool sameDir(const line u, const line v) {
+	return parallel(u, v) && gt(u.normVec() * v.normVec(), 0);
+}
+inline line bisector(const vec2 u, const vec2 v) {
+	return line(v.x - u.x, v.y - u.y, 0.5 * (u.norm2() - v.norm2()));
+}
+inline double dis2(const vec2 P, const line l) {
+	return l(P) * l(P) / l.norm2();
+}
+inline vec2 projection(const vec2 P, const line l) {
+	return P - l.normVec() * (l(P) / l.norm2());
+}
+inline vec2 symmetry(const vec2 P, const line l) {
+	return P - l.normVec() * (2 * l(P) / l.norm2());
+}
+// Relation of 3 points. (2 inside, 1 outside, 0 not collinear)
+inline int collinear(const vec2 u, const vec2 v, const vec2 P) {
+	double p = cross(P, u, v);
+	return eq(p, 0) ? 1 + le(dot(P, u, v), 0) : 0;
+}
+// Perimeter of a polygon
+double perimeter(int n, vec2* poly) {
+	double ret = (poly[n - 1] - *poly).norm();
+	for (int i = 1; i < n; ++i) ret += (poly[i - 1] - poly[i]).norm();
+	return ret;
+}
+// Directed area of a polygon (positive if CCW)
+double area(int n, vec2* poly) {
+	double ret = poly[n - 1] ^ *poly;
+	for (int i = 1; i < n; ++i) ret += poly[i - 1] ^ poly[i];
+	return ret * 0.5;
+}
+// Point in polygon (2 on boundary, 1 inside, 0 outside)
+int contain(int n, vec2* poly, const vec2 P) {
+	int in = 0;
+	vec2 *r = poly + (n - 1), *u, *v;
+	for (int i = 0; i < n; r = poly, ++poly, ++i) {
+		if (collinear(*r, *poly, P) == 2) return 2;
+		gt(r->y, poly->y) ? (u = poly, v = r) : (u = r, v = poly);
+		if (ge(P.y, v->y) || lt(P.y, u->y)) continue;
+		in ^= gt(cross(P, *u, *v), 0);
+	}
+	return in;
+}
+// Convex Hall
+int graham(int n, vec2* p, vec2* dest) {
+	int i;
+	vec2* ret = dest;
+	std::iter_swap(p, std::min_element(p, p + n));
+	std::sort(p + 1, p + n, [p](const vec2 A, const vec2 B) {
+		double r = cross(*p, A, B);
+		return gt(r, 0) || (ge(r, 0) && lt((A - *p).norm2(), (B - *p).norm2()));
+	});
+	for (i = 0; i < 2 && i < n; ++i) *ret++ = p[i];
+	for (; i < n; *ret++ = p[i++])
+		for (; ret != dest + 1 && ge(cross(ret[-2], p[i], ret[-1]), 0); --ret)
+			;
+	return *ret = *p, ret - dest;
+}
+double convDiameter(int n, vec2* poly) {
+	int l = std::min_element(poly, poly + n) - poly,
+	    r = std::max_element(poly, poly + n) - poly, i = l, j = r;
+	double diam = (poly[l] - poly[r]).norm2();
+	do {
+		(ge(poly[(i + 1) % n] - poly[i] ^ poly[(j + 1) % n] - poly[j], 0)
+		     ? ++j
+		     : ++i) %= n;
+		up(diam, (poly[i] - poly[j]).norm2());
+	} while (i != l || j != r);
+	return diam;
+}
+//
+inline vec2 circumCenter(const vec2 A, const vec2 B, const vec2 C) {
+	vec2 a = B - A, b = C - A, AO;
+	double det = 0.5 / (a ^ b), na = a.norm2(), nb = b.norm2();
+	AO = vec2((na * b.y - nb * a.y) * det, (nb * a.x - na * b.x) * det);
+	return A + AO;
+}
+double minCircleCover(int n, vec2* p, vec2* ret = NULL) {
+	int i, j, k;
+	double r2 = 0.0;
+	std::random_shuffle(p + 1, p + (n + 1));
+	vec2 C = p[1];
+	for (i = 2; i <= n; ++i)
+		if (gt((p[i] - C).norm2(), r2))
+			for (C = p[i], r2 = 0, j = 1; j < i; ++j)
+				if (gt((p[j] - C).norm2(), r2))
+					for (C = (p[i] + p[j]) * 0.5, r2 = (p[j] - C).norm2(),
+					    k = 1;
+					     k < j; ++k)
+						if (gt((p[k] - C).norm2(), r2))
+							C = circumCenter(p[i], p[j], p[k]),
+							r2 = (p[k] - C).norm2();
+	return ret ? *ret = C : 0, r2;
+}
+//半平面交
+inline bool HPIcmp(const line u, const line v) {
+	return sameDir(u, v) ? gt((fabs(u.A) + fabs(u.B)) * v.C,
+	                          (fabs(v.A) + fabs(v.B)) * u.C)
+	                     : u.normVec() << v.normVec();
+}
+inline bool geStraight(const vec2 A, const vec2 B) {
+	return lt(A ^ B, 0) || le(A ^ B, 0) && lt(A * B, 0);
+}
+inline bool para_nega_test(const line u, const line v) {
+	return parallel(u, v) && lt(u.normVec() * v.normVec(), 0)
+	       && (fabs(u.A) + fabs(u.B)) * v.C + (fabs(v.A) + fabs(v.B)) * u.C
+	              < -7e-14;
+}
+int HPI(int n, line* l, vec2* poly, vec2*& ret) {  // -1 : Unbounded, -2 :
+	Infeasible int h = 0, t = -1, i, j, que[n + 5];
+	std::sort(l, l + n, HPIcmp);
+	n = std::unique(l, l + n, sameDir) - l;
+	for (j = i = 0; i < n && j < n; ++i) {
+		for (up(j, i + 1); j < n && !geStraight(l[i].normVec(), l[j].normVec());
+		     ++j)
+			;
+		if (para_nega_test(l[i], l[j])) return -2;
+	}
+	if (n <= 2 || geStraight(l[n - 1].normVec(), l->normVec())) return -1;
+	for (i = 0; i < n; ++i) {
+		if (geStraight(l[que[t]].normVec(), l[i].normVec())) return -1;
+		for (; h < t && le(l[i](poly[t - 1]), 0); --t)
+			;
+		for (; h < t && le(l[i](poly[h]), 0); ++h)
+			;
+		que[++t] = i;
+		h < t ? poly[t - 1] = intersection(l[que[t - 1]], l[que[t]]) : 0;
+	}
+	for (; h < t && le(l[que[h]](poly[t - 1]), 0); --t)
+		;
+	return h == t ? -2
+	              : (poly[t] = intersection(l[que[t]], l[que[h]]),
+	                 ret = poly + h, t - h + 1);
+}
+// circles
+const double pi = M_PI, pi2 = pi * 2., pi_2 = M_PI_2;
+inline double angle(const vec2 u, const vec2 v) { return atan2(u ^ v, u * v); }
+// intersection of circle and line
+int intersection(double r2, const vec2 O, const line l, vec2* ret) {
+	double d2 = dis2(O, l);
+	vec2 j = l.normVec();
+	if (gt(d2, r2)) return ret[0] = ret[1] = vec2(INFINITY, INFINITY), 0;
+	if (ge(d2, r2)) return ret[0] = ret[1] = projection(O, l), 1;
+	if (le(d2, 0)) {
+		j = j * sqrt(r2 / j.norm2());
+		ret[0] = O + j.trans(0, -1, 1, 0);
+		ret[1] = O + j.trans(0, 1, -1, 0);
+	} else {
+		double T = copysign(sqrt((r2 - d2) / d2), l(O));
+		j = j * (-l(O) / j.norm2());
+		ret[0] = O + j.trans(1, T, -T, 1);
+		ret[1] = O + j.trans(1, -T, T, 1);
+	}
+	return 2;
+}
+// area of intersection(x^2 + y^2 = r^2, triangle OBC)
+double interArea(double r2, const vec2 B, const vec2 C) {
+	if (eq(B ^ C, 0)) return 0;
+	vec2 is[2];
+	if (!intersection(r2, vec2(), line(B, C), is))
+		return 0.5 * r2 * angle(B, C);
+	bool b = gt(B.norm2(), r2), c = gt(C.norm2(), r2);
+	if (b && c)
+		return 0.5
+		       * (lt(dot(*is, B, C), 0)
+		              ? r2 * (angle(B, *is) + angle(is[1], C)) + (is[0] ^ is[1])
+		              : r2 * angle(B, C));
+	else if (b) return 0.5 * (r2 * angle(B, *is) + (*is ^ C));
+	else if (c) return 0.5 * ((B ^ is[1]) + r2 * angle(is[1], C));
+	else return 0.5 * (B ^ C);
+}
+// tangents to circle((0, 0), r) through P
+int tangent(double r, const vec2 P, line* ret) {
+	double Q = P.norm2() - r * r;
+	if (lt(Q, 0))
+		return ret[0] = ret[1] = line(INFINITY, INFINITY, INFINITY), 0;
+	if (le(Q, 0)) return ret[0] = ret[1] = line(P.x, P.y, -P.norm2()), 1;
+	Q = sqrt(Q) / r;
+	ret[0] = line(P.x + Q * P.y, P.y - Q * P.x, -P.norm2());
+	ret[1] = line(P.x - Q * P.y, P.y + Q * P.x, -P.norm2());
+	return 2;
+}
+// tangets to circle(O, r) through P
+int tangent(double r, const vec2 O, const vec2 P, line* ret) {
+	int R = tangent(r, P - O, ret);
+	if (R)
+		ret[0].C -= ret[0].A * O.x + ret[0].B * O.y,
+		    ret[1].C -= ret[1].A * O.x + ret[1].B * O.y;
+	return R;
+}\end{lstlisting}
+\subsection{自适应辛普森}
+\begin{lstlisting}
+double Simpson(double L, double M, double R, double fL, double fM, double fR,
+               double eps) {
+	double LM = (L + M) * 0.5, fLM = f(LM), MR = (M + R) * 0.5, fMR = f(MR);
+	double A = (fL + fM * 4.0 + fR) * (R - L) * sixth,
+	       AL = (fL + fLM * 4.0 + fM) * (M - L) * sixth,
+	       AR = (fM + fMR * 4.0 + fR) * (R - M) * sixth;
+	if (fabs(AL + AR - A) < eps) return (2.0 * (AL + AR) + A) * third;
+	return Simpson(L, LM, M, fL, fLM, fM, eps * 0.6)
+	       + Simpson(M, MR, R, fM, fMR, fR, eps * 0.6);
+}\end{lstlisting}
 \clearpage\section{杂项}
 Delete This
 \begin{lstlisting}

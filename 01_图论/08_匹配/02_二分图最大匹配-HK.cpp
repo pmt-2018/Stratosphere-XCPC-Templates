@@ -1,27 +1,42 @@
 // HK, 左到右单向边, O(M \sqrt{|match|})
-int matchl[maxn], matchr[maxn], a[maxn], p[maxn];
-int HK() {
-	while (true) {
-		for (int i = 1; i <= nl; i++) a[i] = p[i] = 0;
-		queue<int> Q;
-		while (!Q.empty()) Q.pop();
-		for (int i = 1; i <= nl; i++)
-			if (!matchl[i]) a[i] = p[i] = i, Q.push(i);
-		int succ = 0;
-		while (!Q.empty()) {
-			int u = Q.front();
-			Q.pop();
-			if (matchl[a[u]]) continue;
-			for (int v : G[u]) {
-				if (!matchr[v]) {
-					for (succ = 1; v; u = p[u])
-						matchr[v] = u, swap(matchl[u], v);
-					break;
-				}
-				if (!p[matchr[v]])
-					Q.push(matchr[v]), p[matchr[v]] = u, a[matchr[v]] = a[u];
-			}
+int nl, nr, m;
+vi G[maxn];
+int L[maxn], R[maxn], vis[maxn], matchl[maxn], matchr[maxn];
+queue<int> Q;
+bool bfs() {
+	for (int i = 1; i <= nl; i++) L[i] = 0;
+	for (int i = 1; i <= nr; i++) R[i] = 0;
+
+	for (int i = 1; i <= nl; i++)
+		if (!matchl[i]) L[i] = 1, Q.push(i);
+	int succ = 0;
+	while (!Q.empty()) {
+		int u = Q.front();
+		Q.pop();
+		for (int v : G[u]) {
+			if (R[v]) continue;
+			R[v] = L[u] + 1;
+			if (matchr[v]) {
+				L[matchr[v]] = R[v] + 1, Q.push(matchr[v]);
+			} else succ = 1;
 		}
-		if (!succ) break;
 	}
+	return succ;
+}
+bool dfs(int u) {
+	for (int v : G[u])
+		if (R[v] == L[u] + 1 && !vis[v]) {
+			vis[v] = 1;
+			if (!matchr[v] || dfs(matchr[v]))
+				return matchl[u] = v, matchr[v] = u, 1;
+		}
+	return 0;
+}
+void HK() {
+	while (bfs()) {
+		for (int i = 1; i <= nr; i++) vis[i] = 0;
+		for (int i = 1; i <= nl; ++i)
+			if (!matchl[i]) dfs(i);
+	}
+	return;
 }

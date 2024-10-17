@@ -43,6 +43,4 @@ void update(int u) {
 		if (u) {}  // TODO: 用 aft 更新 trans[u] 和 dp[u]
 	}
 }
-Vector query() {
-	return T.query(1, 1, n, id[1], endc[1]) * dp[id[endc[1]]];
-}
+Vector query() { return T.query(1, 1, n, id[1], endc[1]) * dp[id[endc[1]]]; }

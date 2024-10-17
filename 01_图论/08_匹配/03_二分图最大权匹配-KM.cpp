@@ -3,9 +3,7 @@ namespace KM {
 	int nl, nr;
 	ll e[maxn][maxn], lw[maxn], rw[maxn], mnw[maxn];
 	int lpr[maxn], rpr[maxn], vis[maxn], fa[maxn];
-	void addedge(int x, int y, ll w) {
-		ckmax(e[x][y], w), ckmax(lw[x], w);
-	}
+	void addedge(int x, int y, ll w) { ckmax(e[x][y], w), ckmax(lw[x], w); }
 	void work(int x) {
 		int xx = x;
 		for (int i = 1; i <= nr; i++) vis[i] = 0, mnw[i] = 1e18;
@@ -19,12 +17,9 @@ namespace KM {
 				if (!vis[i] && mn >= mnw[i]) ckmin(mn, mnw[i]), y = i;
 			lw[xx] -= mn;
 			for (int i = 1; i <= nr; i++)
-				if (vis[i])
-					rw[i] += mn, lw[rpr[i]] -= mn;
-				else
-					mnw[i] -= mn;
-			if (rpr[y])
-				x = rpr[y], vis[y] = 1;
+				if (vis[i]) rw[i] += mn, lw[rpr[i]] -= mn;
+				else mnw[i] -= mn;
+			if (rpr[y]) x = rpr[y], vis[y] = 1;
 			else {
 				while (y) rpr[y] = fa[y], swap(y, lpr[fa[y]]);
 				return;

@@ -1,0 +1,30 @@
+若想要求出$f$在$n$处的前缀和$s(n) = \sum\limits_{i=1}^n f(i)$，构造积性函数$g$，设$h =  f \ast g$，则
+$$
+\begin{aligned}
+& \sum\limits_{i = 1} ^ n h(i) \\
+= \ & \sum\limits_{ij \leq n} f(i) g(j) \\
+= \ & \sum\limits_{d = 1} ^ n g(d) \sum\limits_{i = 1} ^ {\frac n d} f(i) \\ 
+= \ & \sum\limits_{d = 1} ^ n g(d) s\left(\left\lfloor\frac n d\right\rfloor\right)
+\end{aligned}
+$$
+
+若$g,h$的前缀和可以快速求出，则
+
+$$
+s(n) = \sum\limits_{i = 1} ^ n h(i) - \sum\limits_{d = 2} ^ n g(d)s\left(\left\lfloor\frac n d\right\rfloor\right)
+$$
+
+预处理$f$的前缀和到$n^{2/3}$处即可做到单次查询$O(n^{2/3})$。
+
+\begin{lstlisting}
+ll sum_f(ll x) {
+	if (x <= N) return sf[x];
+	if (Sf[n / x]) return Sf[n / x];
+	ll ans = Sum_h(x);
+	for (ll l = 2, r; l <= x; l = r + 1) {
+		r = x / (x / l);
+		sub(ans, sum_g(l, r) * sum_f(x / l));
+	}
+	return Sf[n / x] = ans;
+}
+\end{lstlisting}

@@ -1,0 +1,24 @@
+你说的对，但是感觉不如原根。
+\par 原根，是一个数学符号。
+设 $m$ 是正整数，$a$是整数，若 $a$ 模 $m$ 的阶等于 $\varphi(m)$
+（定义 $a$ 模 $m$ 的阶 $\delta_m(a)$ 为最小的$x$ 满足 $a^x\equiv 1 \pmod m$），则称 $a$ 为模 $m$ 的一个原根。
+\par 假设一个数 $g$ 是 $p\in\textbf P$ 的原根，那么$\forall 0<i<p,g^i \bmod p$ 的结果两两不同，
+归根到底就是 $g^a \equiv 1 \pmod p$ 当且仅当指数 $a$ 为 $p-1$ 的倍数时成立。
+\par 你的数学很差，我现在每天用原根都能做 $10^5$ 次数据规模 $10^6$ 的NTT，
+每个月差不多 $3\times10^6$ 次卷积，即 $2\times10^6$次常系数齐次线性递推，
+也就是现实生活中$6.4\times10^{19}$ 次乘法运算，换算过来最少也要算 $2\times10^4$年。
+虽然我只有 $14$岁，但是已经超越了中国绝大多数人（包括你）的水平，这便是原根给我的骄傲的资本。
+
+
+
+性质：
+
+\begin{itemize}
+    \item 最小原根大小数量级在$O(m^{1/4})$左右，求最小原根直接枚举$g$并检验 对于 $\varphi(m)$ 的每个素因数 $p$，都有 $g^{\frac{\varphi(m)}{p}}\not\equiv 1\pmod m$ 即可。
+    \item 
+    $$
+    \delta_m(a^k)=\dfrac{\delta_m(a)}{\left(\delta_m(a),k\right)}
+    $$
+    通常这里的$a$是$g$。
+    \item 将模$m$剩余系看成一个$\times g$的循环群。
+\end{itemize}

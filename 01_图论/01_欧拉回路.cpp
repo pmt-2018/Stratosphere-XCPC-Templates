@@ -27,7 +27,7 @@ namespace Euler {
 		n = m = 0;
 	}
 	void addedge(int x, int y) {
-		chkmax(n, x), chkmax(n, y);
+		ckmax(n, x), ckmax(n, y);
 		e[++m] = {x, y};
 		if (directed) {
 			G[x].push_back({y, m});
@@ -51,11 +51,11 @@ namespace Euler {
 		reverse(ans.begin(), ans.end());
 		vi ver, edge = ans;
 		if (directed) {
-			ver = {e[ans[0]].fir};
-			for (auto t : ans) ver.push_back(e[t].sec);
+			ver = {e[ans[0]].fi};
+			for (auto t : ans) ver.push_back(e[t].se);
 		} else {
-			ver = {ans[0] > 0 ? e[ans[0]].fir : e[-ans[0]].sec};
-			for (auto t : ans) ver.push_back(t > 0 ? e[t].sec : e[-t].fir);
+			ver = {ans[0] > 0 ? e[ans[0]].fi : e[-ans[0]].se};
+			for (auto t : ans) ver.push_back(t > 0 ? e[t].se : e[-t].fi);
 		}
 		clr();
 		return {ver, edge};

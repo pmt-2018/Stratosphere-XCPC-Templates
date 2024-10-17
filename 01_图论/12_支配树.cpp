@@ -25,10 +25,8 @@ namespace Dom_DAG {
 			for (int v : G[x]) {
 				--deg[v];
 				if (!deg[v]) q.push(v);
-				if (!idom[v])
-					idom[v] = x;
-				else
-					idom[v] = lca(idom[v], x);
+				if (!idom[v]) idom[v] = x;
+				else idom[v] = lca(idom[v], x);
 			}
 		}
 	}
@@ -64,10 +62,8 @@ namespace Dom {
 			if (w > cnt) continue;
 			for (int v : rG[x]) {
 				if (!dfn[v]) continue;
-				if (dfn[v] < dfn[x])
-					ckmin(cur, dfn[v]);
-				else
-					find(v), ckmin(cur, mn[v]);
+				if (dfn[v] < dfn[x]) ckmin(cur, dfn[v]);
+				else find(v), ckmin(cur, mn[v]);
 			}
 			semi[x] = id[cur];
 			mn[x] = cur;
@@ -76,7 +72,5 @@ namespace Dom {
 			Dom_DAG::deg[x]++;
 		}
 	}
-	void addedge(int x, int y) {
-		G[x].push_back(y), rG[y].push_back(x);
-	}
+	void addedge(int x, int y) { G[x].push_back(y), rG[y].push_back(x); }
 }  // namespace Dom
