@@ -1,6 +1,7 @@
 // ---
-// $$C_i = \sum_{j\oplus k = i}A_j\times B_k$$。
+// $$C_i = \sum_{j\oplus k = i}A_j\times B_k$$\\
 // $A$, $B$ FWT后对应位相乘在iFWT回去。
+// \par 对于子集卷积，额外加一维popcount，FMT对应位做卷积在iFMT回去就可以了。
 // ---
 // op = 1 / -1
 inline void FMT_OR(int* a, int n, int op) {
